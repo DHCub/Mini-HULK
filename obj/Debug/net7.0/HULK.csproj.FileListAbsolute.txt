@@ -1,0 +1,15 @@
+/home/dhc/Desktop/CC/Programming/Csharp_code/Language_Design/HULK/bin/Debug/net7.0/HULK
+/home/dhc/Desktop/CC/Programming/Csharp_code/Language_Design/HULK/bin/Debug/net7.0/HULK.deps.json
+/home/dhc/Desktop/CC/Programming/Csharp_code/Language_Design/HULK/bin/Debug/net7.0/HULK.runtimeconfig.json
+/home/dhc/Desktop/CC/Programming/Csharp_code/Language_Design/HULK/bin/Debug/net7.0/HULK.dll
+/home/dhc/Desktop/CC/Programming/Csharp_code/Language_Design/HULK/bin/Debug/net7.0/HULK.pdb
+/home/dhc/Desktop/CC/Programming/Csharp_code/Language_Design/HULK/obj/Debug/net7.0/HULK.csproj.AssemblyReference.cache
+/home/dhc/Desktop/CC/Programming/Csharp_code/Language_Design/HULK/obj/Debug/net7.0/HULK.GeneratedMSBuildEditorConfig.editorconfig
+/home/dhc/Desktop/CC/Programming/Csharp_code/Language_Design/HULK/obj/Debug/net7.0/HULK.AssemblyInfoInputs.cache
+/home/dhc/Desktop/CC/Programming/Csharp_code/Language_Design/HULK/obj/Debug/net7.0/HULK.AssemblyInfo.cs
+/home/dhc/Desktop/CC/Programming/Csharp_code/Language_Design/HULK/obj/Debug/net7.0/HULK.csproj.CoreCompileInputs.cache
+/home/dhc/Desktop/CC/Programming/Csharp_code/Language_Design/HULK/obj/Debug/net7.0/HULK.dll
+/home/dhc/Desktop/CC/Programming/Csharp_code/Language_Design/HULK/obj/Debug/net7.0/refint/HULK.dll
+/home/dhc/Desktop/CC/Programming/Csharp_code/Language_Design/HULK/obj/Debug/net7.0/HULK.pdb
+/home/dhc/Desktop/CC/Programming/Csharp_code/Language_Design/HULK/obj/Debug/net7.0/HULK.genruntimeconfig.cache
+/home/dhc/Desktop/CC/Programming/Csharp_code/Language_Design/HULK/obj/Debug/net7.0/ref/HULK.dll

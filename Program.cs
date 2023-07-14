@@ -4,14 +4,39 @@ class Program
 {
     static void Main()
     {
-        var global_symbol_table = new SymbolTable();
+        var analyzer = new Semantic_Analizer();
+
         while(true)
         {
-            var line = Console.ReadLine();
-            var lexer = new Lexer(line);
+            System.Console.Write('>');
+            string prog = Console.ReadLine();
+            var lexer = new Lexer(prog);
             var parser = new Parser(lexer);
 
-            var ast = parser.Get_Command_AST();
+            var tree = parser.Get_Command_AST();
+
+            if (tree.Statement is Function_Declaration_Node)
+            {
+                try
+                {
+                    analyzer.Define_Function((Function_Declaration_Node)tree.Statement);
+                }
+                catch(Exception e)
+                {
+                    System.Console.WriteLine(e.Message);
+                }
+            }
+            else
+            {
+                try
+                {
+                    analyzer.typecheck(tree.Statement);
+                }
+                catch(Exception e)
+                {
+                    System.Console.WriteLine(e.Message);
+                }
+            }
         }
     }
 }

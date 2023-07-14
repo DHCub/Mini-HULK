@@ -195,6 +195,8 @@ class Lexer
             var text = new List<char>();
             while(curCharacter != '\"')
             {
+                if (curCharacter == '\0')
+                    throw new Exception(SYNTATCIC_ERROR + "Unbalanced quotation marks");
                 text.Add(curCharacter);
                 advance();
             }
@@ -254,7 +256,7 @@ class Lexer
 
     public void Syntatctic_Error(Token problem, string expected)
     {
-        throw new Exception($"!Syntactic Error, {expected} expected at {problem.position}");
+        throw new Exception(SYNTATCIC_ERROR + $"{expected} expected at {problem.position}");
     }
 
     public void eat(string expectedType)
@@ -262,6 +264,8 @@ class Lexer
         if (curToken.Type == expectedType) getNextToken();
         else Syntatctic_Error(curToken, expectedType);
     }
+
+    const string SYNTATCIC_ERROR = "!Syntactic Error: ";
 
 }
 

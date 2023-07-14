@@ -303,13 +303,15 @@ class Parser
     {
         if (lexer.curToken.Type == KeyWords.TRUE) 
         {
+            var pos = lexer.curToken.position;
             lexer.eat(KeyWords.TRUE);
-            return new BOOLEAN_Node(true);
+            return new BOOLEAN_Node(true, pos);
         }
         else if (lexer.curToken.Type == KeyWords.FALSE)
         {
+            var pos = lexer.curToken.position;
             lexer.eat(KeyWords.FALSE);
-            return new BOOLEAN_Node(false);
+            return new BOOLEAN_Node(false, pos);
         }
 
         lexer.Syntatctic_Error(lexer.curToken, "BOOLEAN");
@@ -320,9 +322,10 @@ class Parser
     NUMBER_Node number()
     {
         var number = lexer.curToken;
+        var pos = lexer.curToken.position;
         lexer.eat(Token.NUMBER);
 
-        return new NUMBER_Node(double.Parse(number.Value));
+        return new NUMBER_Node(double.Parse(number.Value), pos);
     }
 
     STRING_Node _string()
@@ -330,7 +333,7 @@ class Parser
         Token s = lexer.curToken;
         lexer.eat(Token.STRING);
 
-        return new STRING_Node(s.Value);                
+        return new STRING_Node(s.Value, s.position);                
     }
     
     const string UNREACHABLE = "\n **********UNREACHABLE********** \n";

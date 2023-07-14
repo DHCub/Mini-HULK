@@ -90,21 +90,21 @@ class Function_Declaration_Node : AST_Treenode
 class Function_Call_Node : AST_Treenode
 {
     public Variable_Node Name_node;
-    public Function_Symbol Symbol;
     public List<AST_Treenode> Arguments;
     public Function_Call_Node(Variable_Node Name_node, List<AST_Treenode> Arguments)
     {
         this.Name_node = Name_node;
         this.Arguments = Arguments;
-        Symbol = null;
     }
 }
 
 class STRING_Node : AST_Treenode
 {
     public string Value;
-    public STRING_Node(string Value)
+    public int position;
+    public STRING_Node(string Value, int position)
     {
+        this.position = position;
         this.Value = Value;
     }
 }
@@ -112,8 +112,10 @@ class STRING_Node : AST_Treenode
 class NUMBER_Node : AST_Treenode
 {
     public double Value;
-    public NUMBER_Node(double Value)
+    public int position;
+    public NUMBER_Node(double Value, int position)
     {
+        this.position = position;
         this.Value = Value;
     }
 }
@@ -121,9 +123,11 @@ class NUMBER_Node : AST_Treenode
 class BOOLEAN_Node : AST_Treenode
 {
     public bool Value;
-    public BOOLEAN_Node(bool Value)
+    public int position;
+    public BOOLEAN_Node(bool Value, int position)
     {
         this.Value = Value;
+        this.position = position;
     }
 }
 
