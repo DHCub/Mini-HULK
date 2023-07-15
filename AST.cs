@@ -78,11 +78,15 @@ class Function_Declaration_Node : AST_Treenode
 {
     public Variable_Node Name_variable;
     public List<Variable_Node> Parameters;
+    public List<SimpleType> Type_Specifiers;
+    public SimpleType Return_Type;
     public AST_Treenode Body;
-    public Function_Declaration_Node(Variable_Node Name_variable, List<Variable_Node> Parameters, AST_Treenode Body)
+    public Function_Declaration_Node(Variable_Node Name_variable, List<Variable_Node> Parameters, List<SimpleType> Type_Specifiers, SimpleType Return_Type, AST_Treenode Body)
     {
         this.Parameters = Parameters;
+        this.Type_Specifiers = Type_Specifiers;
         this.Name_variable = Name_variable;
+        this.Return_Type = Return_Type;
         this.Body = Body;
     }
 }

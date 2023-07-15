@@ -97,32 +97,65 @@ class Parser
         var varToken = variable();
 
         lexer.eat(Token.OPEN_PARENTHESIS);
-        var Parameters = new List<Variable_Node>();
+        (List<Variable_Node> , List<SimpleType> ) Parameters;
         
         if (lexer.curToken.Type != Token.CLOSE_PARENTHESIS)
             Parameters = parameter_list();
-
+        else Parameters = (new List<Variable_Node>(), new List<SimpleType>());
+        
         lexer.eat(Token.CLOSE_PARENTHESIS);
+
+        SimpleType Return_Type;
+        if (lexer.curToken.Type == Token.COLON)
+        {
+            lexer.eat(Token.COLON);
+            Return_Type = type_specifier();
+        }
+        else Return_Type = null;
 
         lexer.eat(Token.ARROW);
 
         var body = statement();
 
-        return new Function_Declaration_Node(varToken, Parameters, body);
+        return new Function_Declaration_Node(varToken, Parameters.Item1, Parameters.Item2, Return_Type, body);
     }
 
-    List<Variable_Node> parameter_list()
+    (List<Variable_Node> parameter_list, List<SimpleType> Type_Specifiers) parameter_list()
     {
         var Parameters = new List<Variable_Node>();
+        var Type_Specifiers = new List<SimpleType>();
+        
         Parameters.Add(variable());
+        if (lexer.curToken.Type == Token.COLON)
+        {
+            lexer.eat(Token.COLON);
+            var type_spec = type_specifier();
+            if (type_spec == SimpleType.VOID())
+                throw new Exception(Semantic_Analizer.SEMANTIC_ERROR + "VOID is not a valid type for a function Parameter");
+
+            Type_Specifiers.Add(type_spec);   
+        }
+        else Type_Specifiers.Add(null);
 
         while(lexer.curToken.Type == Token.COMMA)
         {
             lexer.eat(Token.COMMA);
             Parameters.Add(variable());
+            if(lexer.curToken.Type == Token.COLON)
+            {
+                lexer.eat(Token.COLON);
+                var type_spec = type_specifier();
+
+                if (type_spec == SimpleType.VOID())
+                    throw new Exception(Semantic_Analizer.SEMANTIC_ERROR + "VOID is not a valid type for a function Parameter");
+                
+                Type_Specifiers.Add(type_spec);
+
+            }
+            else Type_Specifiers.Add(null);            
         }
 
-        return Parameters;
+        return (Parameters, Type_Specifiers);
     }
 
     AST_Treenode expression()
@@ -297,6 +330,15 @@ class Parser
         }
 
         return Arguments;
+    }
+
+    SimpleType type_specifier()
+    {
+        if (lexer.curToken.Type == KeyWords.BOOLEAN) {lexer.eat(KeyWords.BOOLEAN); return SimpleType.BOOLEAN();}
+        else if (lexer.curToken.Type == KeyWords.STRING) {lexer.eat(KeyWords.STRING); return SimpleType.STRING();}
+        else if (lexer.curToken.Type == KeyWords.NUMBER) {lexer.eat(KeyWords.NUMBER); return SimpleType.NUMBER();}
+        else if (lexer.curToken.Type == KeyWords.VOID) {lexer.eat(KeyWords.VOID); return SimpleType.VOID();}
+        else throw new Exception(Lexer.SYNTATCIC_ERROR + $"Type Specifier expected at {lexer.curToken.position}"); 
     }
 
     BOOLEAN_Node boolean()

@@ -38,7 +38,8 @@ class Program
             }
             catch(Exception e)
             {
-                System.Console.WriteLine(e.Message);
+                System.Console.WriteLine(e);
+                analyzer.RevertToGlobal();
                 continue;
             }
         }

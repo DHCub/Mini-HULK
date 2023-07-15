@@ -24,6 +24,7 @@ class Token
 
     public const string SEMICOLON = ";";
     public const string COMMA = ",";
+    public const string COLON = ":";
     public const string GREATER = ">";
     public const string SMALLER = "<";
 
@@ -181,6 +182,10 @@ class Lexer
             curToken = new Token(Token.SEMICOLON, Token.SEMICOLON, pos);
             advance();
             return;
+        case ':':
+            curToken = new Token(Token.COLON, Token.COLON, pos);
+            advance();
+            return;
         case ',':
             curToken = new Token(Token.COMMA, Token.COMMA, pos);
             advance();
@@ -269,7 +274,7 @@ class Lexer
         else Syntatctic_Error(curToken, expectedType);
     }
 
-    const string SYNTATCIC_ERROR = "!Syntactic Error: ";
+    public const string SYNTATCIC_ERROR = "!SYNTACTIC ERROR: ";
 
 }
 
@@ -290,12 +295,18 @@ static class KeyWords
 
     public const string FUNCTION = "function";
 
+    public const string NUMBER = "number";
+    public const string STRING = "string";
+    public const string BOOLEAN = "boolean";
+    public const string VOID = "void";
+
     public static Token GetToken(string word, int pos)
     {
         if (word == LET  || word == IN    ||
             word == IF   || word == ELSE  ||
             word == TRUE || word == FALSE ||
-            word == OR   || word == AND || word == FUNCTION)
+            word == OR   || word == AND || word == FUNCTION ||
+            word == NUMBER || word == STRING || word == BOOLEAN || word == VOID)
             
             return new Token(word, word, pos);
 

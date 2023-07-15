@@ -44,6 +44,7 @@ class Context
 
     public void Define(Symbol symbol)
     {
+        
         if (BuiltIns.Assignments.ContainsKey(symbol.Name) || Assignments.ContainsKey(symbol.Name))
             throw new Exception(Semantic_Analizer.SEMANTIC_ERROR + $"{symbol.Name} already defined in this Context");
         else Assignments[symbol.Name] = symbol;
@@ -51,6 +52,7 @@ class Context
 
     public void Define(Symbol symbol, int pos)
     {
+
         if (BuiltIns.Assignments.ContainsKey(symbol.Name) || Assignments.ContainsKey(symbol.Name))
             throw new Exception(Semantic_Analizer.SEMANTIC_ERROR + $"{symbol.Name} at {pos} already defined in this Context");
         else Assignments[symbol.Name] = symbol;

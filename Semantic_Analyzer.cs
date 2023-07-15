@@ -3,76 +3,128 @@ namespace HULK;
 class Semantic_Analizer
 {
     Context Current_Context;
+    Context Global_Context;
     
     public Semantic_Analizer()
     {
-        this.Current_Context = new Context();
+        this.Global_Context = new Context();
+        this.Current_Context = Global_Context;
     }
+
+    public void RevertToGlobal() {Current_Context = Global_Context;}
 
     #region Function definition handling and type inference
     public void Define_Function(Function_Declaration_Node declaration)
     {
         SimpleType.Reset_Names();
-        var constraints = new Equation_System();
         
         var original_global_context = Current_Context;
+        Current_Context = new Context(original_global_context);
+        
+        var function_Symbol = getFunction_Symbol(declaration);
+        Current_Context.Define(function_Symbol);
+        
+        var return_type = function_Symbol.Return_Type;
+        var function_name = function_Symbol.Name;
+        
+        AddParametersToCurrentContext(function_Symbol);
 
-        Current_Context = new Context(Current_Context);
-        var func_name = declaration.Name_variable.VarToken.Value;
-        var func_Return_var = SimpleType.New_Type_Variable();
+        if (ContainsTypeVariables(function_Symbol)) 
+        {
+            function_Symbol = getType_Inferred_Function_Symbol(declaration, function_Symbol);
+            
+            Current_Context = new Context(original_global_context);
+            Current_Context.Define(function_Symbol);
+            AddParametersToCurrentContext(function_Symbol);
+            return_type = function_Symbol.Return_Type;
+        }
+
+        
+
+        var actual_return = typecheck(declaration.Body);
+
+        if (return_type != actual_return)
+            throw new Exception($"Expected {return_type} as return type, {actual_return} obtained instead");
+
+
+        function_Symbol.Body = declaration.Body;
+        
+        Current_Context = Global_Context;
+        Global_Context.Define(function_Symbol);
+
+    }
+
+    Function_Symbol getFunction_Symbol(Function_Declaration_Node declaration)
+    {
+        var provisional_Context = new Context();
+
+        var name = declaration.Name_variable.VarToken.Value;
+        var return_type = (declaration.Return_Type is null) ? SimpleType.New_Type_Variable() : declaration.Return_Type;
 
         var Parameters = new List<Variable_Symbol>();
-        
-        foreach(var parameter_declaration in declaration.Parameters)
+        for(int i = 0; i < declaration.Parameters.Count; i++)
         {
-            var name = parameter_declaration.VarToken.Value;
-            var type_var = SimpleType.New_Type_Variable();
-            var param_Symbol = new Variable_Symbol(name, type_var);
+            var param_type = (declaration.Type_Specifiers[i] is null) ? SimpleType.New_Type_Variable() : declaration.Type_Specifiers[i];
+            var param_name = declaration.Parameters[i].VarToken.Value;
 
-            Current_Context.Define(param_Symbol, parameter_declaration.VarToken.position);
-            
+            var param_Symbol = new Variable_Symbol(param_name, param_type);
+            provisional_Context.Define(param_Symbol, declaration.Parameters[i].VarToken.position);
+
             Parameters.Add(param_Symbol);
         }
 
-        var function_Symbol = new Function_Symbol(func_name, func_Return_var, Parameters);
+        return new Function_Symbol(name, return_type, Parameters);
+    }
 
-        Current_Context.Define(function_Symbol);
+    Function_Symbol getType_Inferred_Function_Symbol(Function_Declaration_Node declaration, Function_Symbol unresolved_symbol)
+    {
+        var return_type = unresolved_symbol.Return_Type;
+        var function_name = unresolved_symbol.Name;
+        var Parameters = unresolved_symbol.Parameters;
 
-        InferTypes(declaration.Body, func_Return_var, constraints);
+        var constraints = new Equation_System();
+        InferTypes(declaration.Body, return_type, constraints);
 
         System.Console.WriteLine("Type Inference:");
-        var return_type = Equation_System.ResolveType($"Return type of {func_name}", func_Return_var, constraints);
+        return_type = (!return_type.isLiteral()) ? Equation_System.ResolveType($"Return type of {function_name}", return_type, constraints) : return_type;
         System.Console.WriteLine("Return Type: " + return_type);
-
-        Current_Context = new Context(original_global_context);
 
         var Resolved_Parameters = new List<Variable_Symbol>();
         for (int i = 0; i < declaration.Parameters.Count; i++)
         {
             var paramteter_declaration = declaration.Parameters[i];
-            var name = paramteter_declaration.VarToken.Value;
-            var param_type = Equation_System.ResolveType($"Type of Parameter #{i + 1}, {name}", Parameters[i].Return_Type, constraints);
+            var param_name = paramteter_declaration.VarToken.Value;
+            var param_type = (declaration.Type_Specifiers[i] is null) ? Equation_System.ResolveType($"Type of Parameter #{i + 1}, {param_name}", Parameters[i].Return_Type, constraints) : declaration.Type_Specifiers[i];
 
-            var param_Symbol = new Variable_Symbol(name, param_type);
-            System.Console.WriteLine($"Parameter {name} type: " + param_type);
+            var param_Symbol = new Variable_Symbol(param_name, param_type);
+            System.Console.WriteLine($"Parameter {param_name} type: " + param_type);
+
             Resolved_Parameters.Add(param_Symbol);
-            Current_Context.Define(param_Symbol);
         }
 
-        var func_symbol = new Function_Symbol(func_name, return_type, Resolved_Parameters);
-        func_symbol.Body = declaration.Body;
+        return new Function_Symbol(function_name, return_type, Resolved_Parameters);
+    }
 
-        Current_Context.Define(func_symbol);
+    bool ContainsTypeVariables(Function_Symbol symbol)
+    {
+        if (!symbol.Return_Type.isLiteral()) return true;
+        for (int i = 0; i < symbol.Parameters.Count; i++)
+        {
+            if (!symbol.Parameters[i].Return_Type.isLiteral()) return true;
+        }
 
-        var actual_return = typecheck(declaration.Body);
+        return false;
+    }
 
-        if (return_type != actual_return)
-            throw new Exception($"Return type of {func_name} is inconsistent with type inference and type checking");
+    void AddParametersToCurrentContext(Function_Symbol symbol)
+    {
+        foreach(var parameter in symbol.Parameters)
+        {
+            var param_name = parameter.Name;
+            var param_type = parameter.Return_Type;
 
-        Current_Context = original_global_context;
-
-        Current_Context.Define(func_symbol);
-
+            Current_Context.Define(new Variable_Symbol(param_name, param_type));
+        }
     }
 
     void InferTypes(AST_Treenode node, SimpleType Expected, Equation_System Constraints)
@@ -434,7 +486,7 @@ class Semantic_Analizer
         => $"Function {name} used as variable at {pos}";
 
     string Incorrect_Number_of_Arguments(string name, int pos, int Expected, int Actual)
-        => $"Function {name} takes {Expected} Parameters, {Actual} passed instead at {pos}";
+        => $"Function {name} takes {Expected} Parameter(s), {Actual} passed instead at {pos}";
 
     string Incorrect_Type_of_Argument(string function_name, int pos, SimpleType Expected, SimpleType Actual, int zero_index_param_Number)
         => $"Function {function_name} takes {Expected} as #{zero_index_param_Number + 1} parameter, {Actual} passed istead at {pos}";

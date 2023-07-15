@@ -46,7 +46,7 @@ static class Interpreter
             else if (name == Context.SQRT)
             {
                 var argument = (double)eval(call.Arguments[0]);
-                if (argument < 0) throw new Exception($"Square Root of negative number detected at {call.Name_node.VarToken.position}");
+                if (argument < 0) throw new Exception($"Square Root of negative number detected");
                 return Math.Sqrt(argument);
 
             }
@@ -169,10 +169,10 @@ static class Interpreter
         case Token.MINUS: return left - right;
         case Token.TIMES: return left * right;
         case Token.DIVISION: 
-            if (right == 0) throw new Exception(Zero_Division(op.position));
+            if (right == 0) throw new Exception(Zero_Division());
             return left / right;
         case Token.MODULO: 
-            if (right == 0) throw new Exception(Zero_Division(op.position));
+            if (right == 0) throw new Exception(Zero_Division());
             return left % right;
         case Token.POWER: return Math.Pow(left, right);
         default: throw new Exception("UNREACHABLE Arithmetic_Binop_Operate");
@@ -192,7 +192,7 @@ static class Interpreter
     }
 
 
-    static string Zero_Division(int location)
-        => $"Zero dvivision detected at {location}";
+    static string Zero_Division()
+        => $"Zero dvivision detected";
 }
 
