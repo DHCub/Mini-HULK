@@ -5,7 +5,7 @@ class Context
 {
     Dictionary<string, Symbol> Assignments;
     static Context BuiltIns = new Context(true);
-    bool BuiltInsDefined = false;
+    static bool BuiltInsDefined = false;
     bool isBuiltins;
     Context enclosing;
 
@@ -58,31 +58,45 @@ class Context
 
     static void define_Builtins(Context C)
     {
-        var name = "PI";
-        var PI = new Variable_Symbol(name, SimpleType.NUMBER());
-        C.Assignments[name] = PI;
+        var PI_Symbol = new Variable_Symbol(PI, SimpleType.NUMBER());
+        C.Assignments[PI] = PI_Symbol;
 
-        name = "sin";
+        var E_Symbol = new Variable_Symbol(E, SimpleType.NUMBER());
+        C.Assignments[E] = E_Symbol;
+
         var Parameters = new List<Variable_Symbol>();
         Parameters.Add(new Variable_Symbol("x", SimpleType.NUMBER()));
         var Return_Type = SimpleType.NUMBER();
-        var sin = new Function_Symbol(name, Return_Type, Parameters);
-        C.Assignments[name] = sin;
+        var sin_Symbol = new Function_Symbol(SIN, Return_Type, Parameters);
+        C.Assignments[SIN] = sin_Symbol;
 
-        name  = "cos";
         Parameters = new List<Variable_Symbol>();
         Parameters.Add(new Variable_Symbol("x", SimpleType.NUMBER()));
         Return_Type = SimpleType.NUMBER();
-        var cos = new Function_Symbol(name, Return_Type, Parameters);
-        C.Assignments[name] = cos;
+        var cos_Symbol = new Function_Symbol(COS, Return_Type, Parameters);
+        C.Assignments[COS] = cos_Symbol;
 
-        name = "print";
         Parameters = new List<Variable_Symbol>();
         Parameters.Add(new Variable_Symbol("ToWrite", SimpleType.ANY()));
         Return_Type = SimpleType.VOID();
-        var print = new Function_Symbol(name, Return_Type, Parameters);
-        C.Assignments[name] = print;
+        var print_symbol = new Function_Symbol(PRINT, Return_Type, Parameters);
+        C.Assignments[PRINT] = print_symbol;
+
+        Parameters = new List<Variable_Symbol>();
+        Parameters.Add(new Variable_Symbol("x", SimpleType.NUMBER()));
+        Return_Type = SimpleType.NUMBER();
+        var sqrt_Symbol = new Function_Symbol(SQRT, Return_Type, Parameters);
+        C.Assignments[SQRT] = sqrt_Symbol;
+
     }   
+
+    public const string PRINT = "print";
+    public const string SIN = "sin";
+    public const string COS = "cos";
+    public const string SQRT = "sqrt";
+
+    public const string PI = "PI";
+    public const string E = "E";
 }
 
 abstract class Symbol 

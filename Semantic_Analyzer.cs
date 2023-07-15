@@ -307,6 +307,8 @@ class Semantic_Analizer
                 }
             }
 
+            call.Symbol = func_symbol;
+
             return func_symbol.Return_Type;
         }
         else if (node is UnOp_Node)

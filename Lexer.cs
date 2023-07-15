@@ -124,6 +124,10 @@ class Lexer
             curToken = new Token(Token.MODULO, Token.MODULO, pos);
             advance();
             return;
+        case '^':
+            curToken = new Token(Token.POWER, Token.POWER, pos);
+            advance();
+            return;
         case '@':
             curToken = new Token(Token.AT_OPERATOR, Token.AT_OPERATOR, pos);
             advance();

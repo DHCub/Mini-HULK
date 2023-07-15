@@ -91,6 +91,7 @@ class Function_Call_Node : AST_Treenode
 {
     public Variable_Node Name_node;
     public List<AST_Treenode> Arguments;
+    public Function_Symbol Symbol; // filled by Semantic Analyzer
     public Function_Call_Node(Variable_Node Name_node, List<AST_Treenode> Arguments)
     {
         this.Name_node = Name_node;
