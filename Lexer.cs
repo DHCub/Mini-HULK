@@ -274,7 +274,7 @@ class Lexer
         else Syntatctic_Error(curToken, expectedType);
     }
 
-    public const string SYNTATCIC_ERROR = "!SYNTACTIC ERROR: ";
+    public const string SYNTATCIC_ERROR = "! SYNTACTIC ERROR: ";
 
 }
 

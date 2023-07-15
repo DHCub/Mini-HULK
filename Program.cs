@@ -5,10 +5,9 @@ class Program
     static void Main()
     {
         var analyzer = new Semantic_Analizer();
-
         while(true)
         {
-            System.Console.Write('>');
+            System.Console.Write("> ");
             string? prog;
             Lexer lexer;
             Parser parser;
@@ -40,7 +39,7 @@ class Program
             }
             catch(Exception e)
             {
-                System.Console.WriteLine(e);
+                System.Console.WriteLine(e.Message);
                 analyzer.RevertToGlobal();
                 continue;
             }
