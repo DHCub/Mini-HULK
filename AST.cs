@@ -78,10 +78,10 @@ class Function_Declaration_Node : AST_Treenode
 {
     public Variable_Node Name_variable;
     public List<Variable_Node> Parameters;
-    public List<SimpleType> Type_Specifiers;
-    public SimpleType Return_Type;
+    public List<SimpleType?> Type_Specifiers;
+    public SimpleType? Return_Type;
     public AST_Treenode Body;
-    public Function_Declaration_Node(Variable_Node Name_variable, List<Variable_Node> Parameters, List<SimpleType> Type_Specifiers, SimpleType Return_Type, AST_Treenode Body)
+    public Function_Declaration_Node(Variable_Node Name_variable, List<Variable_Node> Parameters, List<SimpleType?> Type_Specifiers, SimpleType? Return_Type, AST_Treenode Body)
     {
         this.Parameters = Parameters;
         this.Type_Specifiers = Type_Specifiers;
@@ -95,7 +95,7 @@ class Function_Call_Node : AST_Treenode
 {
     public Variable_Node Name_node;
     public List<AST_Treenode> Arguments;
-    public Function_Symbol Symbol; // filled by Semantic Analyzer
+    public Function_Symbol? Symbol; // filled by Semantic Analyzer
     public Function_Call_Node(Variable_Node Name_node, List<AST_Treenode> Arguments)
     {
         this.Name_node = Name_node;

@@ -9,14 +9,16 @@ class Program
         while(true)
         {
             System.Console.Write('>');
-            string prog;
+            string? prog;
             Lexer lexer;
             Parser parser;
-            Command_Node tree = null;
+            Command_Node tree = null!;
             
             try
             {
                 prog = Console.ReadLine();
+                if (prog is null || prog == "") continue; 
+                
                 lexer = new Lexer(prog);
                 parser = new Parser(lexer);
                 tree = parser.Get_Command_AST();

@@ -67,7 +67,7 @@ class Semantic_Analizer
             var param_type = (declaration.Type_Specifiers[i] is null) ? SimpleType.New_Type_Variable() : declaration.Type_Specifiers[i];
             var param_name = declaration.Parameters[i].VarToken.Value;
 
-            var param_Symbol = new Variable_Symbol(param_name, param_type);
+            var param_Symbol = new Variable_Symbol(param_name, param_type!);
             provisional_Context.Define(param_Symbol, declaration.Parameters[i].VarToken.position);
 
             Parameters.Add(param_Symbol);
@@ -96,7 +96,7 @@ class Semantic_Analizer
             var param_name = paramteter_declaration.VarToken.Value;
             var param_type = (declaration.Type_Specifiers[i] is null) ? Equation_System.ResolveType($"Type of Parameter #{i + 1}, {param_name}", Parameters[i].Return_Type, constraints) : declaration.Type_Specifiers[i];
 
-            var param_Symbol = new Variable_Symbol(param_name, param_type);
+            var param_Symbol = new Variable_Symbol(param_name, param_type!);
             System.Console.WriteLine($"Parameter {param_name} type: " + param_type);
 
             Resolved_Parameters.Add(param_Symbol);
@@ -516,7 +516,7 @@ class Equation_System
         this.equations = new List<Equation>(other.equations);
     }
 
-    public Equation Extract_Equation(SimpleType member)
+    public Equation? Extract_Equation(SimpleType member)
     {
         for (int i = equations.Count - 1; i >= 0; i--)
         {
@@ -563,7 +563,7 @@ class Equation_System
     public static SimpleType ResolveType(string Name_Of_Type, SimpleType type_variable, Equation_System constraints)
     {
         var temp_System = new Equation_System(constraints);
-        SimpleType answ = null;
+        SimpleType answ = null!; // if we do not find a value for answ, an exception will be thrown
         while(true)
         {
             var equation = temp_System.Extract_Equation(type_variable);

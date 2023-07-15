@@ -2,31 +2,30 @@ namespace HULK;
 
 class Activation_Record
 {
-    Activation_Record parent;
+    Activation_Record? parent;
     Dictionary<string, object> Data;
 
-    static Dictionary<string, object> BuiltIns;
-    static bool BuiltInsDefined = false;
+    static Dictionary<string, object> BuiltIns = getBuiltins();
     bool isBuiltins;
 
-    public Activation_Record(Activation_Record parent = null)
+    public Activation_Record(Activation_Record? parent = null)
     {
         this.parent = parent;
         Data = new Dictionary<string, object>();
         isBuiltins = false;
-        if (!BuiltInsDefined)
-        {
-            BuiltIns = new Dictionary<string, object>();
+    }
 
-            BuiltIns.Add("PI", Math.PI);
-            BuiltIns.Add("E", Math.E);
+    static Dictionary<string, object> getBuiltins()
+    {
+        var answ = new Dictionary<string, object>();
+        answ.Add("PI", Math.PI);
+        answ.Add("E", Math.E);
 
-            BuiltInsDefined = true;
-        }
+        return answ;
     }
 
 
-    public object Lookup(string name)
+    public object? Lookup(string name)
     {
         if (BuiltIns.ContainsKey(name)) return BuiltIns[name];
         

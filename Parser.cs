@@ -97,15 +97,15 @@ class Parser
         var varToken = variable();
 
         lexer.eat(Token.OPEN_PARENTHESIS);
-        (List<Variable_Node> , List<SimpleType> ) Parameters;
+        (List<Variable_Node> , List<SimpleType?> ) Parameters;
         
         if (lexer.curToken.Type != Token.CLOSE_PARENTHESIS)
             Parameters = parameter_list();
-        else Parameters = (new List<Variable_Node>(), new List<SimpleType>());
+        else Parameters = (new List<Variable_Node>(), new List<SimpleType?>());
         
         lexer.eat(Token.CLOSE_PARENTHESIS);
 
-        SimpleType Return_Type;
+        SimpleType? Return_Type;
         if (lexer.curToken.Type == Token.COLON)
         {
             lexer.eat(Token.COLON);
@@ -120,10 +120,10 @@ class Parser
         return new Function_Declaration_Node(varToken, Parameters.Item1, Parameters.Item2, Return_Type, body);
     }
 
-    (List<Variable_Node> parameter_list, List<SimpleType> Type_Specifiers) parameter_list()
+    (List<Variable_Node> parameter_list, List<SimpleType?> Type_Specifiers) parameter_list()
     {
         var Parameters = new List<Variable_Node>();
-        var Type_Specifiers = new List<SimpleType>();
+        var Type_Specifiers = new List<SimpleType?>();
         
         Parameters.Add(variable());
         if (lexer.curToken.Type == Token.COLON)

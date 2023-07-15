@@ -5,20 +5,22 @@ namespace HULK;
 
 static class Interpreter
 {
-    static Activation_Record CurRecord;
-    public static object Evaluate(AST_Treenode Statement)
+    static Activation_Record CurRecord = null!;
+    public static object? Evaluate(AST_Treenode Statement)
     {
         CurRecord = new Activation_Record();
 
         return eval(Statement);
     }
 
-    static object eval(AST_Treenode node)
+    static object? eval(AST_Treenode node) // might return null when calling print for example
     {
         if (node is NUMBER_Node) return ((NUMBER_Node)node).Value;
         else if (node is STRING_Node) return ((STRING_Node)node).Value;
         else if (node is BOOLEAN_Node) return ((BOOLEAN_Node)node).Value;
-        else if (node is Variable_Node) return CurRecord.Lookup(((Variable_Node)node).VarToken.Value);
+        // the following will never return null, if it could, an error should have already been
+        // thrown by the semantic analyzer
+        else if (node is Variable_Node) return CurRecord.Lookup(((Variable_Node)node).VarToken.Value)!;
         else if (node is Function_Call_Node)
         {
             var call = (Function_Call_Node)node;
@@ -35,17 +37,17 @@ static class Interpreter
             else if (name == Context.COS)
             {
                 var argument = eval(call.Arguments[0]);
-                return Math.Cos((double)argument);
+                return Math.Cos((double)argument!); // semantic analyzer ensured non-null
             }
             else if (name == Context.SIN)
             {
                 var argument = eval(call.Arguments[0]);
-                return Math.Sin((double)argument);
+                return Math.Sin((double)argument!); // semantic analyzer ensured non-null
 
             }
             else if (name == Context.SQRT)
             {
-                var argument = (double)eval(call.Arguments[0]);
+                var argument = (double)eval(call.Arguments[0])!; // semantic analyzer ensured non-null
                 if (argument < 0) throw new Exception($"Square Root of negative number detected");
                 return Math.Sqrt(argument);
 
@@ -57,13 +59,14 @@ static class Interpreter
 
                 for (int i = 0; i < call.Arguments.Count; i++)
                 {
-                    if (call.Symbol.Parameters[i].Name is null) System.Console.WriteLine('A');
-                    callRecord.Store(call.Symbol.Parameters[i].Name, eval(call.Arguments[i]));
+                    // the symbol must have been filled out by the semantic analyzer
+                    // the argument must return something, ensured by the analyzer as well
+                    callRecord.Store(call.Symbol!.Parameters[i].Name, eval(call.Arguments[i])!);
                 }
 
                 CurRecord = callRecord;
 
-                var answ = eval(call.Symbol.Body);
+                var answ = eval(call.Symbol!.Body!);
 
                 CurRecord = original_Record;
                 return answ;
@@ -73,7 +76,7 @@ static class Interpreter
         else if (node is UnOp_Node)
         {
             var op = (UnOp_Node)node;
-            var right = (double)eval(op.right);
+            var right = (double)eval(op.right)!;
 
             if (op.Operator.Value == Token.MINUS) return -right;
             else return right; // +
@@ -81,8 +84,8 @@ static class Interpreter
         else if (node is BinOp_Node)
         {
             var op = (BinOp_Node)node;
-            var left = eval(op.left);
-            var right = eval(op.right);
+            var left = eval(op.left)!;
+            var right = eval(op.right)!;
 
             switch(op.Operator.Value)
             {
@@ -135,7 +138,7 @@ static class Interpreter
         {
             var if_else = (If_Else_Node)node;
 
-            if ((bool)eval(if_else.Condition)) return eval(if_else.True_Clause);
+            if ((bool)eval(if_else.Condition)!) return eval(if_else.True_Clause);
             else return eval(if_else.False_Clause);
         }
         else if (node is Let_In_Node)
@@ -148,7 +151,7 @@ static class Interpreter
             
             foreach(var declaration in let_in.Declarations)
             {
-                CurRecord.Store(declaration.Variable_Node.VarToken.Value, eval(declaration.Value));
+                CurRecord.Store(declaration.Variable_Node.VarToken.Value, eval(declaration.Value)!);
             }
 
             var answ = eval(let_in.Statement);

@@ -64,7 +64,7 @@ class Lexer
         this.text = text;
         this.pos = 0;
         this.curCharacter = text[pos];
-
+        curToken = null!;
         getNextToken();
     }
 
@@ -300,7 +300,7 @@ static class KeyWords
     public const string BOOLEAN = "boolean";
     public const string VOID = "void";
 
-    public static Token GetToken(string word, int pos)
+    public static Token? GetToken(string word, int pos)
     {
         if (word == LET  || word == IN    ||
             word == IF   || word == ELSE  ||

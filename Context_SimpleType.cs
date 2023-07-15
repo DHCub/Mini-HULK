@@ -7,9 +7,9 @@ class Context
     static Context BuiltIns = new Context(true);
     static bool BuiltInsDefined = false;
     bool isBuiltins;
-    Context enclosing;
+    Context? enclosing;
 
-    public Context(Context enclosing = null)
+    public Context(Context? enclosing = null)
     {
         this.enclosing = enclosing;
         Assignments = new Dictionary<string, Symbol>();
@@ -30,7 +30,7 @@ class Context
         
     }
 
-    public Symbol Lookup(string Name)
+    public Symbol? Lookup(string Name)
     {
         var builtIn = (isBuiltins) ? null : BuiltIns.Lookup(Name);
         
@@ -44,7 +44,7 @@ class Context
 
     public void Define(Symbol symbol)
     {
-        
+
         if (BuiltIns.Assignments.ContainsKey(symbol.Name) || Assignments.ContainsKey(symbol.Name))
             throw new Exception(Semantic_Analizer.SEMANTIC_ERROR + $"{symbol.Name} already defined in this Context");
         else Assignments[symbol.Name] = symbol;
@@ -121,7 +121,7 @@ class Variable_Symbol : Symbol
 class Function_Symbol : Symbol
 {
     public List<Variable_Symbol> Parameters;
-    public AST_Treenode Body; // this will be filled in semantic analysis
+    public AST_Treenode? Body; // this will be filled in semantic analysis
     public Function_Symbol(string Name, SimpleType Return_Type, List<Variable_Symbol> Parameters) : base(Name, Return_Type)
     {
         this.Parameters = Parameters;
