@@ -278,9 +278,13 @@ class Semantic_Analizer
         {
             var if_else = (If_Else_Node)node;
 
-            InferTypes(if_else.Condition, SimpleType.BOOLEAN(), Constraints);
-            InferTypes(if_else.True_Clause, Expected, Constraints);
-            InferTypes(if_else.False_Clause, Expected, Constraints);
+            for (int i = 0; i < if_else.Conditions.Count; i++)
+            {
+                InferTypes(if_else.Conditions[i], SimpleType.BOOLEAN(), Constraints);
+                InferTypes(if_else.Clauses[i], Expected, Constraints);
+            }
+
+            InferTypes(if_else.Else_Clause, Expected, Constraints);
         }    
         else if (node is Let_In_Node)
         {
@@ -426,17 +430,30 @@ class Semantic_Analizer
         {
             var if_else = (If_Else_Node)node;
 
-            var condition_T = typecheck(if_else.Condition);
+            var condition_T = typecheck(if_else.Conditions[0]); // the node must have at least one condition and clause
             if (condition_T != SimpleType.BOOLEAN())
-                throw new Exception(SEMANTIC_ERROR + $"{Token.BOOLEAN} expected in condition of if-else at {if_else.BeginPos}");
+                throw new Exception(SEMANTIC_ERROR + $"{Token.BOOLEAN}, expected in first condition of if-else at {if_else.BeginPos}, {condition_T} passed instead");
             
-            var True_Clause = typecheck(if_else.True_Clause);
-            var False_Clause = typecheck(if_else.False_Clause);
+            var Clause_T = typecheck(if_else.Clauses[0]);
 
-            if (True_Clause != False_Clause)
-                throw new Exception(SEMANTIC_ERROR + $"If-else statement at {if_else.BeginPos} has two different possible return types {True_Clause} and {False_Clause}");
+            for (int i = 1; i < if_else.Clauses.Count; i++)
+            {
+                var newCondition_T = typecheck(if_else.Conditions[i]);
+                if (newCondition_T != SimpleType.BOOLEAN())
+                    throw new Exception(SEMANTIC_ERROR + $"{Token.BOOLEAN} expected in condition #{i + 1} of if-else statement at {if_else.BeginPos}, {newCondition_T} passed instead");
 
-            return True_Clause;
+                var newClause_T = typecheck(if_else.Clauses[i]);
+                if (newClause_T != Clause_T)
+                    throw new Exception(SEMANTIC_ERROR + $"Clause #{i + 1} of if-else statement at {if_else.BeginPos} has return type ({newClause_T}), different from first clause return type ({Clause_T})");
+            
+            }
+            
+            var Else_Clause = typecheck(if_else.Else_Clause);
+
+            if (Clause_T != Else_Clause)
+                throw new Exception(SEMANTIC_ERROR + $"Else clause of if-else statement at {if_else.BeginPos} has different return type ({Else_Clause}) than rest of clauses ({Clause_T})");
+
+            return Clause_T;
         }
         else if (node is Let_In_Node)
         {

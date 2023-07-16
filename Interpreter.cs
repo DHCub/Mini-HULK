@@ -138,8 +138,11 @@ static class Interpreter
         {
             var if_else = (If_Else_Node)node;
 
-            if ((bool)eval(if_else.Condition)!) return eval(if_else.True_Clause);
-            else return eval(if_else.False_Clause);
+            for (int i = 0; i < if_else.Clauses.Count; i++)
+            {
+                if ((bool)eval(if_else.Conditions[i])!) return eval(if_else.Clauses[i]);
+            }
+            return eval(if_else.Else_Clause);
         }
         else if (node is Let_In_Node)
         {
