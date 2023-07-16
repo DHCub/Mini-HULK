@@ -18,8 +18,8 @@ class Activation_Record
     static Dictionary<string, object> getBuiltins()
     {
         var answ = new Dictionary<string, object>();
-        answ.Add("PI", Math.PI);
-        answ.Add("E", Math.E);
+        answ.Add(Context.PI, Math.PI);
+        answ.Add(Context.E, Math.E);
 
         return answ;
     }

@@ -294,6 +294,7 @@ static class KeyWords
     public const string IN = "in";
     
     public const string IF = "if";
+    public const string ELIF = "elif";
     public const string ELSE = "else";
 
     public const string TRUE = "true";
@@ -312,7 +313,7 @@ static class KeyWords
     public static Token? GetToken(string word, int pos)
     {
         if (word == LET  || word == IN    ||
-            word == IF   || word == ELSE  ||
+            word == IF   || word == ELSE  || word == ELIF ||
             word == TRUE || word == FALSE ||
             word == OR   || word == AND || word == FUNCTION ||
             word == NUMBER || word == STRING || word == BOOLEAN || word == VOID)

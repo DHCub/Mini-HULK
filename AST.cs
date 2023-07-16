@@ -38,15 +38,15 @@ class Variable_Declaration_Node : AST_Treenode
 class If_Else_Node : AST_Treenode
 {
     public int BeginPos;
-    public AST_Treenode Condition;
-    public AST_Treenode True_Clause;
-    public AST_Treenode False_Clause;
-    public If_Else_Node(int BeginPos, AST_Treenode Condition, AST_Treenode True_Clause, AST_Treenode False_Clause)
+    public List<AST_Treenode> Conditions;
+    public List<AST_Treenode> Clauses;
+    public AST_Treenode Else_Clause;
+    public If_Else_Node(int BeginPos, List<AST_Treenode> Conditions, List<AST_Treenode> Clauses, AST_Treenode Else_Clause)
     {
         this.BeginPos = BeginPos;
-        this.Condition = Condition;
-        this.True_Clause = True_Clause;
-        this.False_Clause = False_Clause;
+        this.Conditions = Conditions;
+        this.Clauses = Clauses;
+        this.Else_Clause = Else_Clause;
     }
 }
 

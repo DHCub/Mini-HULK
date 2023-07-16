@@ -86,27 +86,54 @@ class Parser
         var startPos = lexer.curToken.position;
         lexer.eat(KeyWords.IF);
         lexer.eat(Token.OPEN_PARENTHESIS);
+        var Conditions = new List<AST_Treenode>();
+        var Clauses = new List<AST_Treenode>();
 
         var condition = statement();
         if (condition is null)
-            throw new Exception(Lexer.SYNTATCIC_ERROR + "Proposition expected in Condition in if-else statement at {startPos}");
+            throw new Exception(Lexer.SYNTATCIC_ERROR + $"Proposition expected in first Condition in if-else statement at {startPos}");
+        Conditions.Add(condition);
+
 
         var pos = lexer.curToken.position;
         lexer.eat(Token.CLOSE_PARENTHESIS);
 
-        var True_Clause = statement();
-        if (True_Clause is null)
-            throw new Exception(Lexer.SYNTATCIC_ERROR + $"Expression expected after ) at {pos} in if-else statement");
+        var clause = statement();
+        if (clause is null)
+            throw new Exception(Lexer.SYNTATCIC_ERROR + $"Expression expected after ')' token at {pos} in if-else statement");
+        Clauses.Add(clause);
+        
+        while (lexer.curToken.Type == KeyWords.ELIF)
+        {
+            lexer.eat(KeyWords.ELIF);
+            pos = lexer.curToken.position;
+            lexer.eat(Token.OPEN_PARENTHESIS);
+            
+            condition = statement();
+            if (condition is null)
+                throw new Exception(Lexer.SYNTATCIC_ERROR + $"Proposition expected after '(' token at {pos} in if-else statement");
+
+            pos = lexer.curToken.position;    
+            lexer.eat(Token.CLOSE_PARENTHESIS);
+        
+            Conditions.Add(condition);
+
+            clause = statement();
+            if (clause is null)
+                throw new Exception(Lexer.SYNTATCIC_ERROR + $"Expression expected after ')' token at {pos} in if-else statement");
+            
+            Clauses.Add(clause);
+        }
 
         pos = lexer.curToken.position;
         lexer.eat(KeyWords.ELSE);
 
-        var False_Clause = statement();
+        var Else_Clause = statement();
         
-        if (False_Clause is null)
+        if (Else_Clause is null)
             throw new Exception(Lexer.SYNTATCIC_ERROR + $"Expression expected after else at {pos} in if-else statement");
 
-        return new If_Else_Node(startPos, condition, True_Clause, False_Clause);
+        return new If_Else_Node(startPos, Conditions, Clauses, Else_Clause);
     }
     Function_Declaration_Node function_declaration()
     {
