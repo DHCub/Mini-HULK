@@ -432,7 +432,7 @@ class Semantic_Analizer
 
             var condition_T = typecheck(if_else.Conditions[0]); // the node must have at least one condition and clause
             if (condition_T != SimpleType.BOOLEAN())
-                throw new Exception(SEMANTIC_ERROR + $"{Token.BOOLEAN}, expected in first condition of if-else at {if_else.BeginPos}, {condition_T} passed instead");
+                throw new Exception(SEMANTIC_ERROR + $"{Token.BOOLEAN} expected in first condition of if-else at {if_else.BeginPos}, {condition_T} passed instead");
             
             var Clause_T = typecheck(if_else.Clauses[0]);
 
