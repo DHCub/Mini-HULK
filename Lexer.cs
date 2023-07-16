@@ -206,8 +206,17 @@ class Lexer
             {
                 if (curCharacter == '\0')
                     throw new Exception(SYNTATCIC_ERROR + "Unbalanced quotation marks");
-                text.Add(curCharacter);
-                advance();
+                if (curCharacter == '\\' && peek() == '\"')
+                {
+                    text.Add('\"');
+                    advance();
+                    advance();
+                }
+                else
+                {    
+                    text.Add(curCharacter);
+                    advance();
+                }
             }
 
             advance();
