@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/dhc/Desktop/CC/Programming/Csharp_code/Language_Design/HULK/HULK.csproj",
+      "projectUniqueName": "/home/dhc/Desktop/CC/Programming/HULK/HULK.csproj",
       "projectName": "HULK",
-      "projectPath": "/home/dhc/Desktop/CC/Programming/Csharp_code/Language_Design/HULK/HULK.csproj",
+      "projectPath": "/home/dhc/Desktop/CC/Programming/HULK/HULK.csproj",
       "packagesPath": "/home/dhc/.nuget/packages/",
-      "outputPath": "/home/dhc/Desktop/CC/Programming/Csharp_code/Language_Design/HULK/obj/",
+      "outputPath": "/home/dhc/Desktop/CC/Programming/HULK/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/dhc/.nuget/NuGet/NuGet.Config"
