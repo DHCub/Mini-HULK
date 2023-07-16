@@ -14,12 +14,15 @@ class Parser
         if (lexer.curToken.Type == KeyWords.FUNCTION) return new Command_Node(function_declaration());
         
         var node = statement();
+        if (node is null)
+            throw new Exception($"Expression Expected as input");
+            
         lexer.eat(Token.SEMICOLON);
 
         return new Command_Node(node);
     }
 
-    AST_Treenode statement()
+    AST_Treenode? statement()
     {
         if (lexer.curToken.Type == KeyWords.LET) return let_in_statement();
         else if (lexer.curToken.Type == KeyWords.IF) return if_else_statement();
@@ -30,37 +33,52 @@ class Parser
     {
         var BeginPos = lexer.curToken.position;
         lexer.eat(KeyWords.LET);
-        var declarations_Node = variable_declaration_list();
+        var declarations_Node = variable_declaration_list(BeginPos);
 
+        var inPos = lexer.curToken.position;
         lexer.eat(KeyWords.IN);
+        
         var statement_Node = statement();
+        if (statement_Node is null)
+            throw new Exception(Lexer.SYNTATCIC_ERROR + $"Expression expected after in keyword at {inPos} in let-in statement");
 
         return new Let_In_Node(BeginPos, declarations_Node, statement_Node);
     }
 
-    List<Variable_Declaration_Node> variable_declaration_list()
+    List<Variable_Declaration_Node> variable_declaration_list(int BeginPos)
     {
         var declaration_Nodes = new List<Variable_Declaration_Node>();
-        declaration_Nodes.Add(variable_declaration());
-
-        while(lexer.curToken.Type == Token.COMMA)
-        {
-            lexer.eat(Token.COMMA);
-            declaration_Nodes.Add(variable_declaration());
-        }
-
-        return declaration_Nodes;
-    }
-
-    Variable_Declaration_Node variable_declaration()
-    {
-        var var_node = variable();
+        var name  = variable();
+        if (name is null)
+            throw new Exception(Lexer.SYNTATCIC_ERROR + $"Variable declaration expected after let in let-in statement at {BeginPos}");
 
         lexer.eat(Token.ASSIGN);
 
-        var value_node = statement();
+        var expr = statement();
+        if (expr is null)
+            throw new Exception(Lexer.SYNTATCIC_ERROR + $"Expression expected to assign to variable at {name.VarToken.position} in let-in statement");
 
-        return new Variable_Declaration_Node(var_node, value_node);
+        declaration_Nodes.Add(new Variable_Declaration_Node(name, expr));
+
+        while(lexer.curToken.Type == Token.COMMA)
+        {
+            var commaPos = lexer.curToken.position;
+            lexer.eat(Token.COMMA);
+
+            name = variable();
+            if (name is null)
+                throw new Exception(Lexer.SYNTATCIC_ERROR + $"Variable declaration expected after ',' token at {commaPos} in let-in statement");
+
+            lexer.eat(Token.ASSIGN);
+
+            expr = statement();
+            if (expr is null)
+                throw new Exception(Lexer.SYNTATCIC_ERROR + $"Expression expected to assign to variable at {name.VarToken.position} in let-in statement");
+
+            declaration_Nodes.Add(new Variable_Declaration_Node(name, expr));
+        }
+
+        return declaration_Nodes;
     }
 
     If_Else_Node if_else_statement()
@@ -70,31 +88,34 @@ class Parser
         lexer.eat(Token.OPEN_PARENTHESIS);
 
         var condition = statement();
+        if (condition is null)
+            throw new Exception(Lexer.SYNTATCIC_ERROR + "Proposition expected in Condition in if-else statement at {startPos}");
 
+        var pos = lexer.curToken.position;
         lexer.eat(Token.CLOSE_PARENTHESIS);
 
         var True_Clause = statement();
+        if (True_Clause is null)
+            throw new Exception(Lexer.SYNTATCIC_ERROR + $"Expression expected after ) at {pos} in if-else statement");
 
+        pos = lexer.curToken.position;
         lexer.eat(KeyWords.ELSE);
 
         var False_Clause = statement();
+        
+        if (False_Clause is null)
+            throw new Exception(Lexer.SYNTATCIC_ERROR + $"Expression expected after else at {pos} in if-else statement");
 
         return new If_Else_Node(startPos, condition, True_Clause, False_Clause);
     }
-
-    Variable_Node variable()
-    {
-        var varToken = lexer.curToken;
-        lexer.eat(Token.ID);
-
-        return new Variable_Node(varToken);
-    }
-
     Function_Declaration_Node function_declaration()
     {
         lexer.eat(KeyWords.FUNCTION);
 
         var varToken = variable();
+        
+        if (varToken is null)
+            throw new Exception(Lexer.SYNTATCIC_ERROR + "Function name expected after function keword");
 
         lexer.eat(Token.OPEN_PARENTHESIS);
         (List<Variable_Node> , List<SimpleType?> ) Parameters;
@@ -109,13 +130,19 @@ class Parser
         if (lexer.curToken.Type == Token.COLON)
         {
             lexer.eat(Token.COLON);
-            Return_Type = type_specifier();
+            var type_spec = type_specifier();
+            if (type_spec is null)
+                throw new Exception(Lexer.SYNTATCIC_ERROR + "Type specifier expected as return type after ':' token");
+            Return_Type = type_spec;
         }
         else Return_Type = null;
 
         lexer.eat(Token.ARROW);
 
         var body = statement();
+
+        if (body is null)
+            throw new Exception(Lexer.SYNTATCIC_ERROR + "Statement expected as body of function declaration");
 
         return new Function_Declaration_Node(varToken, Parameters.Item1, Parameters.Item2, Return_Type, body);
     }
@@ -125,11 +152,19 @@ class Parser
         var Parameters = new List<Variable_Node>();
         var Type_Specifiers = new List<SimpleType?>();
         
-        Parameters.Add(variable());
+        var parameter = variable();
+        
+        if (parameter is null)
+            throw new Exception(Lexer.SYNTATCIC_ERROR + "Parameter declaration expected after (");
+        
+        Parameters.Add(parameter);
         if (lexer.curToken.Type == Token.COLON)
         {
             lexer.eat(Token.COLON);
             var type_spec = type_specifier();
+            
+            if (type_spec is null)
+                throw new Exception(Lexer.SYNTATCIC_ERROR + "Type specifier expected after : token in parameter declaration");
             if (type_spec == SimpleType.VOID())
                 throw new Exception(Semantic_Analizer.SEMANTIC_ERROR + "VOID is not a valid type for a function Parameter");
 
@@ -140,12 +175,18 @@ class Parser
         while(lexer.curToken.Type == Token.COMMA)
         {
             lexer.eat(Token.COMMA);
-            Parameters.Add(variable());
+            parameter = variable();
+            if (parameter is null)
+                throw new Exception(Lexer.SYNTATCIC_ERROR + "Parameter declaration expected after ',' token");
+
+            Parameters.Add(parameter);
             if(lexer.curToken.Type == Token.COLON)
             {
                 lexer.eat(Token.COLON);
                 var type_spec = type_specifier();
 
+                if (type_spec is null)
+                    throw new Exception(Lexer.SYNTATCIC_ERROR + "Type specifier expected after : token in parameter declaration");
                 if (type_spec == SimpleType.VOID())
                     throw new Exception(Semantic_Analizer.SEMANTIC_ERROR + "VOID is not a valid type for a function Parameter");
                 
@@ -158,39 +199,54 @@ class Parser
         return (Parameters, Type_Specifiers);
     }
 
-    AST_Treenode expression()
+    string EXPRESSION_EXPECTED_AFTER(Token op) 
+        =>  $"Expression expected after {op.Value} operator at {op.position}";
+
+    AST_Treenode? expression()
     {
         var node = conjunction();
+        if (node is null) return null;
 
         while(lexer.curToken.Type == KeyWords.OR)
         {
             var op = lexer.curToken;
             lexer.eat(op.Type);
 
-            node = new BinOp_Node(node, op, conjunction());
+            var right = conjunction();
+            if (right is null)
+                throw new Exception(Lexer.SYNTATCIC_ERROR + EXPRESSION_EXPECTED_AFTER(op));
+
+            node = new BinOp_Node(node, op, right);
         }
 
         return node;
     }
 
-    AST_Treenode conjunction()
+    AST_Treenode? conjunction()
     {
         var node = proposition();
+        if (node is null) return null;
+
 
         while(lexer.curToken.Type == KeyWords.AND)
         {
             var op = lexer.curToken;
             lexer.eat(op.Type);
 
-            node = new BinOp_Node(node, op, proposition());
+            var right = proposition();
+            if (right is null)
+                throw new Exception(Lexer.SYNTATCIC_ERROR + EXPRESSION_EXPECTED_AFTER(op));
+
+            node = new BinOp_Node(node, op, right);
         }
 
         return node;
     }
     
-    AST_Treenode proposition()
+    AST_Treenode? proposition()
     {
         var node = member();
+        if (node is null) return null;
 
         while(lexer.curToken.Type == Token.EQUAL_EQUAL   ||
               lexer.curToken.Type == Token.GREATER       ||
@@ -201,28 +257,37 @@ class Parser
             var op = lexer.curToken;
             lexer.eat(op.Type);
 
-            node = new BinOp_Node(node, op, member());
+            var right = member();
+            if (right is null)
+                throw new Exception(Lexer.SYNTATCIC_ERROR + EXPRESSION_EXPECTED_AFTER(op));
+
+            node = new BinOp_Node(node, op, right);
         }
 
         return node;
     }
 
-    AST_Treenode member()
+    AST_Treenode? member()
     {
         var node = arit_string_bool();
+        if (node is null) return null;
 
         while(lexer.curToken.Type == Token.AT_OPERATOR)
         {
             var op = lexer.curToken;
             lexer.eat(op.Type);
 
-            node = new BinOp_Node(node, op, arit_string_bool());
+            var right = arit_string_bool();
+            if (right is null)
+                throw new Exception(Lexer.SYNTATCIC_ERROR + EXPRESSION_EXPECTED_AFTER(op));
+
+            node = new BinOp_Node(node, op, right);
         }
 
         return node;
     }
 
-    AST_Treenode arit_string_bool()
+    AST_Treenode? arit_string_bool()
     {
         if (lexer.curToken.Type == Token.STRING) return _string();
         if (lexer.curToken.Type == KeyWords.TRUE || lexer.curToken.Type == KeyWords.FALSE) return boolean();
@@ -230,47 +295,64 @@ class Parser
         // arithmetic expression expected
 
         var node = term();
+        if (node is null) return null;
 
         while(lexer.curToken.Type == Token.PLUS || lexer.curToken.Type == Token.MINUS)
         {
             var op = lexer.curToken;
             lexer.eat(op.Type);
 
-            node = new BinOp_Node(node, op, term());
+            var right = term();
+            if (right is null)
+                throw new Exception(Lexer.SYNTATCIC_ERROR + EXPRESSION_EXPECTED_AFTER(op));
+
+            node = new BinOp_Node(node, op, right);
         }
 
         return node;
     }
 
-    AST_Treenode term()
+    AST_Treenode? term()
     {
         var node = factor();
+        if (node is null) return null;
 
         while(lexer.curToken.Type == Token.TIMES || lexer.curToken.Type == Token.DIVISION || lexer.curToken.Type == Token.MODULO)
         {
             var op = lexer.curToken;
             lexer.eat(op.Type);
-            node = new BinOp_Node(node, op, factor());
+
+            var right = factor();
+            if (right is null)
+                throw new Exception(Lexer.SYNTATCIC_ERROR + EXPRESSION_EXPECTED_AFTER(op));
+
+            node = new BinOp_Node(node, op, right);
         }
 
         return node;
     }
 
-    AST_Treenode factor()
+    AST_Treenode? factor()
     {
         var node = power();
+        if (node is null) return null;
         
         if(lexer.curToken.Type == Token.POWER)
         {
             var op = lexer.curToken;
             lexer.eat(Token.POWER);
-            return new BinOp_Node(node, op, factor());
+
+            var right = factor();
+            if (right is null)
+                throw new Exception(Lexer.SYNTATCIC_ERROR + EXPRESSION_EXPECTED_AFTER(op));
+
+            return new BinOp_Node(node, op, right);
         }
 
         return node;
     }
 
-    AST_Treenode power()
+    AST_Treenode? power()
     {
         if (lexer.curToken.Type == Token.NUMBER) return number();
         if (lexer.curToken.Type == Token.ID)
@@ -278,12 +360,18 @@ class Parser
             var explorer = new Lexer(lexer);
             explorer.eat(Token.ID);
             if (explorer.curToken.Type == Token.OPEN_PARENTHESIS) return function_call();
-            else return variable();
+            else return variable()!; // we know there's an identifier
         }
         if (lexer.curToken.Type == Token.OPEN_PARENTHESIS)
         {
+            var pos = lexer.curToken.position;
+            
             lexer.eat(Token.OPEN_PARENTHESIS);
+            
             var expression = statement();
+            if (expression is null)
+                throw new Exception(Lexer.SYNTATCIC_ERROR + $"Expression expected after '(' token at {pos}");
+            
             lexer.eat(Token.CLOSE_PARENTHESIS);
 
             return expression;
@@ -293,22 +381,29 @@ class Parser
             var op = lexer.curToken;
             lexer.eat(op.Type);
 
-            return new UnOp_Node(op, power());
+            var right = power();
+            if (right is null)
+                throw new Exception(Lexer.SYNTATCIC_ERROR + $"Expression expected after unary operator {op.Value} at {op.position}");
+
+            return new UnOp_Node(op, right);
         } 
 
-        lexer.Syntatctic_Error(lexer.curToken, Token.NUMBER);
-        throw new Exception(UNREACHABLE);
+        return null;
+        // lexer.Syntatctic_Error(lexer.curToken, Token.NUMBER);
+        // throw new Exception(UNREACHABLE);
     }
 
-    Function_Call_Node function_call()
+    Function_Call_Node? function_call()
     {
-        var Name_variable = variable();
+        // this is only called when an identifier is detected followed by parenthesis, not null
+        var Name_variable = variable()!; 
         
+        var pos = lexer.curToken.position;
         lexer.eat(Token.OPEN_PARENTHESIS);
         
         List<AST_Treenode> Arguments;
         if (lexer.curToken.Type != Token.CLOSE_PARENTHESIS)
-            Arguments = argument_list();
+            Arguments = argument_list(pos);
 
         else Arguments = new List<AST_Treenode>();
 
@@ -317,28 +412,36 @@ class Parser
         return new Function_Call_Node(Name_variable, Arguments);
     }
 
-    List<AST_Treenode> argument_list()
+    List<AST_Treenode> argument_list(int firtParenthesisPos)
     {
         var Arguments = new List<AST_Treenode>();
+        var expression = statement();
+        if (expression is null)
+            throw new Exception(Lexer.SYNTATCIC_ERROR + $"Expected expression after '(' token at {firtParenthesisPos} as argument in function call");
 
-        Arguments.Add(statement());
+        Arguments.Add(expression);
 
         while(lexer.curToken.Type == Token.COMMA)
         {
+            var commaPos = lexer.curToken.position;
             lexer.eat(Token.COMMA);
-            Arguments.Add(statement());
+            expression = statement();
+            if (expression is null)
+                throw new Exception(Lexer.SYNTATCIC_ERROR + $"Expected expression after ',' token at {commaPos} as argument in function call");
+
+            Arguments.Add(expression);
         }
 
         return Arguments;
     }
 
-    SimpleType type_specifier()
+    SimpleType? type_specifier()
     {
         if (lexer.curToken.Type == KeyWords.BOOLEAN) {lexer.eat(KeyWords.BOOLEAN); return SimpleType.BOOLEAN();}
         else if (lexer.curToken.Type == KeyWords.STRING) {lexer.eat(KeyWords.STRING); return SimpleType.STRING();}
         else if (lexer.curToken.Type == KeyWords.NUMBER) {lexer.eat(KeyWords.NUMBER); return SimpleType.NUMBER();}
         else if (lexer.curToken.Type == KeyWords.VOID) {lexer.eat(KeyWords.VOID); return SimpleType.VOID();}
-        else throw new Exception(Lexer.SYNTATCIC_ERROR + $"Type Specifier expected at {lexer.curToken.position}"); 
+        else return null;
     }
 
     BOOLEAN_Node boolean()
@@ -378,5 +481,21 @@ class Parser
         return new STRING_Node(s.Value, s.position);                
     }
     
+    
+    Variable_Node? variable()
+    {
+        var varToken = lexer.curToken;
+        
+        if (lexer.curToken.Type == Token.ID)
+        {
+            lexer.eat(Token.ID);
+            return new Variable_Node(varToken);
+        }
+        else return null;
+
+    }
+
+
+
     const string UNREACHABLE = "\n **********UNREACHABLE********** \n";
 }
