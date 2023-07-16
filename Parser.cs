@@ -19,6 +19,10 @@ class Parser
             
         lexer.eat(Token.SEMICOLON);
 
+
+        if(lexer.curToken.Type != Token.EOF)
+            throw new Exception("End of input expected after ';' token");
+
         return new Command_Node(node);
     }
 
