@@ -228,15 +228,17 @@ class Lexer
         if (char.IsDigit(curCharacter)) curToken = _numberToken();
         else if (char.IsLetter(curCharacter) || curCharacter == '_') curToken = _idToken();
 
-        else throw new Exception($"!Lexical Error, Invalid character {curCharacter} at {pos}");
+        else throw new Exception(LEXICAL_ERROR + $"Invalid character '{curCharacter}' at {pos}");
     }
 
     Token _numberToken()
     {
         var digList = new List<char>();
         var startPos = pos;
-        while(char.IsDigit(curCharacter))
+        bool invalid_token = false;
+        while(char.IsDigit(curCharacter) || char.IsLetter(curCharacter))
         {
+            if (char.IsLetter(curCharacter)) invalid_token = true;
             digList.Add(curCharacter);
             advance();
         }
@@ -244,12 +246,19 @@ class Lexer
         {
             digList.Add(curCharacter);
             advance();
-            while(char.IsDigit(curCharacter))
+            if (!char.IsDigit(curCharacter)) invalid_token = true;
+            while(char.IsDigit(curCharacter) || char.IsLetter(curCharacter))
             {
+                if(char.IsLetter(curCharacter)) invalid_token = true;
                 digList.Add(curCharacter);
                 advance();
             }
         }
+
+        var tokenString = new string(digList.ToArray());
+
+        if (invalid_token)
+            throw new Exception(LEXICAL_ERROR + $"'{tokenString}' is not a valid token");
 
         return new Token(Token.NUMBER, new string(digList.ToArray()), startPos);
     }
@@ -284,6 +293,7 @@ class Lexer
     }
 
     public const string SYNTATCIC_ERROR = "! SYNTACTIC ERROR: ";
+    public const string LEXICAL_ERROR = "! LEXICAL ERROR: ";
 
 }
 
