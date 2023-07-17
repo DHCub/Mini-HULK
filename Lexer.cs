@@ -260,7 +260,7 @@ class Lexer
         if (invalid_token)
             throw new Exception(LEXICAL_ERROR + $"'{tokenString}' is not a valid token");
 
-        return new Token(Token.NUMBER, new string(digList.ToArray()), startPos);
+        return new Token(Token.NUMBER, tokenString, startPos);
     }
 
     Token _idToken()
