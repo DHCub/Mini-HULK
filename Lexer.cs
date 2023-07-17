@@ -236,9 +236,9 @@ class Lexer
         var digList = new List<char>();
         var startPos = pos;
         bool invalid_token = false;
-        while(char.IsDigit(curCharacter) || char.IsLetter(curCharacter))
+        while(char.IsDigit(curCharacter) || char.IsLetter(curCharacter) || curCharacter == '_')
         {
-            if (char.IsLetter(curCharacter)) invalid_token = true;
+            if (char.IsLetter(curCharacter) || curCharacter == '_' && !char.IsDigit(peek())) invalid_token = true;
             digList.Add(curCharacter);
             advance();
         }
@@ -247,9 +247,9 @@ class Lexer
             digList.Add(curCharacter);
             advance();
             if (!char.IsDigit(curCharacter)) invalid_token = true;
-            while(char.IsDigit(curCharacter) || char.IsLetter(curCharacter))
+            while(char.IsDigit(curCharacter) || char.IsLetter(curCharacter) || curCharacter == '_')
             {
-                if(char.IsLetter(curCharacter)) invalid_token = true;
+                if(char.IsLetter(curCharacter) || curCharacter == '_' && !char.IsDigit(peek())) invalid_token = true;
                 digList.Add(curCharacter);
                 advance();
             }
@@ -260,7 +260,10 @@ class Lexer
         if (invalid_token)
             throw new Exception(LEXICAL_ERROR + $"'{tokenString}' is not a valid token");
 
-        return new Token(Token.NUMBER, tokenString, startPos);
+        Predicate<char> match = x => x == '_';
+        digList.RemoveAll(match);
+
+        return new Token(Token.NUMBER, new string(digList.ToArray()), startPos);
     }
 
     Token _idToken()
