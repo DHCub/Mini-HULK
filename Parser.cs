@@ -231,7 +231,7 @@ class Parser
     }
 
     string EXPRESSION_EXPECTED_AFTER(Token op) 
-        =>  $"Expression expected after {op.Value} operator at {op.position}";
+        =>  $"Valid expression expected after {op.Value} operator at {op.position}";
 
     AST_Treenode? expression()
     {
