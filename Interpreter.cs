@@ -106,6 +106,15 @@ static class Interpreter
                     throw new Exception("UNEXPECTED TYPE Eval");
                 }
                 return false;
+            case Token.NOT_EQUAL:
+                if (left.GetType() != right.GetType()) return true;
+                else
+                {
+                    if (left is double) return (double)left != (double)right;
+                    if (left is string) return (string)left != (string)right;
+                    if (left is bool) return (bool)left != (bool)right;
+                    throw new Exception("UNEXPECTED TYPE Eval");   
+                }
             
             case Token.SMALLER:
             case Token.GREATER:

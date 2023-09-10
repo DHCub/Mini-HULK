@@ -229,6 +229,7 @@ class Semantic_Analizer
                 
                 return;
             case Token.EQUAL_EQUAL:
+            case Token.NOT_EQUAL:
                 if (Expected.isLiteral() && Expected != SimpleType.BOOLEAN())
                     throw new Exception(SEMANTIC_ERROR + Type_Error(op.Operator.position, Token.BOOLEAN));
                 
@@ -397,6 +398,7 @@ class Semantic_Analizer
                 return SimpleType.NUMBER();
             
             case Token.EQUAL_EQUAL:
+            case Token.NOT_EQUAL:
                 // any types work here
 
                 return SimpleType.BOOLEAN();

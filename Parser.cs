@@ -230,8 +230,6 @@ class Parser
         return (Parameters, Type_Specifiers);
     }
 
-    string EXPRESSION_EXPECTED_AFTER(Token op) 
-        =>  $"Valid expression expected after {op.Value} operator at {op.position}";
 
     AST_Treenode? expression()
     {
@@ -245,7 +243,8 @@ class Parser
 
             var right = conjunction();
             if (right is null)
-                throw new Exception(Lexer.SYNTATCIC_ERROR + EXPRESSION_EXPECTED_AFTER(op));
+                throw new Exception(Lexer.SYNTATCIC_ERROR + $"Boolean expression expected after {op.Value} operator at {op.position}"
+                + forgot_Parentheses());
 
             node = new BinOp_Node(node, op, right);
         }
@@ -266,7 +265,8 @@ class Parser
 
             var right = proposition();
             if (right is null)
-                throw new Exception(Lexer.SYNTATCIC_ERROR + EXPRESSION_EXPECTED_AFTER(op));
+                throw new Exception(Lexer.SYNTATCIC_ERROR + $"Boolean expression expected after {op.Value} operator at {op.position}"
+                + forgot_Parentheses());
 
             node = new BinOp_Node(node, op, right);
         }
@@ -280,6 +280,7 @@ class Parser
         if (node is null) return null;
 
         while(lexer.curToken.Type == Token.EQUAL_EQUAL   ||
+              lexer.curToken.Type == Token.NOT_EQUAL     ||
               lexer.curToken.Type == Token.GREATER       ||
               lexer.curToken.Type == Token.SMALLER       ||
               lexer.curToken.Type == Token.GREATER_EQUAL ||
@@ -290,7 +291,8 @@ class Parser
 
             var right = member();
             if (right is null)
-                throw new Exception(Lexer.SYNTATCIC_ERROR + EXPRESSION_EXPECTED_AFTER(op));
+                throw new Exception(Lexer.SYNTATCIC_ERROR + $"Boolean literal, string, or arithmetic expression expected after {op.Value} at {op.position}"
+                + forgot_Parentheses());
 
             node = new BinOp_Node(node, op, right);
         }
@@ -310,7 +312,8 @@ class Parser
 
             var right = arit_string_bool();
             if (right is null)
-                throw new Exception(Lexer.SYNTATCIC_ERROR + EXPRESSION_EXPECTED_AFTER(op));
+                throw new Exception(Lexer.SYNTATCIC_ERROR + $"Boolean literal, string, or arithmetic expression expected after {op.Value} at {op.position}"
+                + forgot_Parentheses());
 
             node = new BinOp_Node(node, op, right);
         }
@@ -335,7 +338,8 @@ class Parser
 
             var right = term();
             if (right is null)
-                throw new Exception(Lexer.SYNTATCIC_ERROR + EXPRESSION_EXPECTED_AFTER(op));
+                throw new Exception(Lexer.SYNTATCIC_ERROR + $"Arithmetic expression expected after {op.Value} at {op.position}"
+                + forgot_Parentheses());
 
             node = new BinOp_Node(node, op, right);
         }
@@ -355,7 +359,8 @@ class Parser
 
             var right = factor();
             if (right is null)
-                throw new Exception(Lexer.SYNTATCIC_ERROR + EXPRESSION_EXPECTED_AFTER(op));
+               throw new Exception(Lexer.SYNTATCIC_ERROR + $"Arithmetic expression expected after {op.Value} at {op.position}"
+                + forgot_Parentheses());
 
             node = new BinOp_Node(node, op, right);
         }
@@ -375,7 +380,8 @@ class Parser
 
             var right = factor();
             if (right is null)
-                throw new Exception(Lexer.SYNTATCIC_ERROR + EXPRESSION_EXPECTED_AFTER(op));
+                throw new Exception(Lexer.SYNTATCIC_ERROR + $"Arithmetic expression expected after {op.Value} at {op.position}"
+                + forgot_Parentheses());
 
             return new BinOp_Node(node, op, right);
         }
@@ -414,7 +420,8 @@ class Parser
 
             var right = power();
             if (right is null)
-                throw new Exception(Lexer.SYNTATCIC_ERROR + $"Expression expected after unary operator {op.Value} at {op.position}");
+                throw new Exception(Lexer.SYNTATCIC_ERROR + $"Arithmetic expression expected after {op.Value} at {op.position}"
+                + forgot_Parentheses());
 
             return new UnOp_Node(op, right);
         } 
@@ -529,4 +536,8 @@ class Parser
 
 
     const string UNREACHABLE = "\n **********UNREACHABLE********** \n";
+    string forgot_Parentheses()
+    {
+        return ((lexer.curToken.Type == KeyWords.IF || lexer.curToken.Type == KeyWords.LET) ? "\n Maybe you forgot '(' before let-in or if-else statement" : "");
+    }
 }
