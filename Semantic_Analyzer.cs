@@ -85,9 +85,9 @@ class Semantic_Analizer
         var constraints = new Equation_System();
         InferTypes(declaration.Body, return_type, constraints);
 
-        System.Console.WriteLine("Type Inference:");
+        // System.Console.WriteLine("Type Inference:");
         return_type = (!return_type.isLiteral()) ? Equation_System.ResolveType($"Return type of {function_name}", return_type, constraints) : return_type;
-        System.Console.WriteLine("Return Type: " + return_type);
+        // System.Console.WriteLine("Return Type: " + return_type);
 
         var Resolved_Parameters = new List<Variable_Symbol>();
         for (int i = 0; i < declaration.Parameters.Count; i++)
@@ -97,7 +97,7 @@ class Semantic_Analizer
             var param_type = (declaration.Type_Specifiers[i] is null) ? Equation_System.ResolveType($"Type of Parameter #{i + 1}, {param_name}", Parameters[i].Return_Type, constraints) : declaration.Type_Specifiers[i];
 
             var param_Symbol = new Variable_Symbol(param_name, param_type!);
-            System.Console.WriteLine($"Parameter {param_name} type: " + param_type);
+            // System.Console.WriteLine($"Parameter {param_name} type: " + param_type);
 
             Resolved_Parameters.Add(param_Symbol);
         }
