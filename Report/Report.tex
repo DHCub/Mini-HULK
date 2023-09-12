@@ -1,7 +1,7 @@
 \documentclass{article}
 \usepackage[spanish]{babel}
 \usepackage[utf8]{inputenc}
-\usepackage[left=2.5cm, right=2.5cm, top=3cm, bottom=3cm]{geometry}
+\usepackage[left=2cm, right=2cm, top=3cm, bottom=3cm]{geometry}
 
 \begin{document}
 
@@ -149,6 +149,48 @@ Usando la información contenida en los objetos de tipo \texttt{Symbol}, se pued
 Vale la pena aclarar que en el caso de los errores durante el análisis semántico, de existir, se debe llamar la función \texttt{RevertToGlobal} de la instancia del analizador, esto se hace necesario pues cuando se lanza una excepción durante el análisis, el analizador puede tener marcado como contexto actual a cualquier scope del programa, si no se revierte al gobal, pueden ocurrir errores insidiosos, esto se hace en \texttt{Program.cs}.
 
 \newpage
+
+\section{Anexo, Reglas usadas}
+
+\begin{verbatim}
+Command : (Statement | Function_declaration) SEMICOLON
+
+Statement : let_in_statement
+          | if_else_statement
+          | OP_Expression
+
+let_in_statement : LET declaration_list IN Statement
+
+declaration_list : declaration (, declaration)*
+declaration : Variable ASSIGN Statement
+
+if_else_statement : IF OPEN_PAR Statement CLOSE_PAR Statement 
+                    (ELIF OPEN_PAR Statement CLOSE PAR Statement)* ELSE Statement
+
+Function_declaration : FUNCTION ID OPEN_PAR Parameters CLOSE_PAR (COLON TYPE_SPEC)? ARROW Statement
+Parameters : Variable (COLON TYPE_SPEC)? (, Variable (COLON TYPE_SPEC)? )*
+           | Empty
+
+OP_Expression    : Conj (OR Conj)*
+Conj             : Prop (AND Prop)*
+Prop             : Member ((== | > | >= | < | <=) Member)*
+Member           : Arit_String_Bool (@ Arit_String_Bool)*
+Arit_String_Bool : String | Term((+|-)Term)* | Boolean
+Term             : Factor ((*|/|%) Factor)*
+Factor           : Power (^ Factor)*
+Power            : Number | Variable | Function_Call | OPEN_PAR Statement CLOSE_PAR | (+|-)Power
+
+Variable      : ID
+Boolean       : TRUE | FALSE
+String        : QUOTE_MARKS _text_ QUOTE_MARKS
+
+Function_Call : ID OPEN_PAR Arguments CLOSE_PAR
+
+Arguments     : Statement (, Statement)*
+              | Empty
+\end{verbatim}
+
+LET, IN, FUNCTION, IF, ELSE, ELIF, AND, OR, TRUE y FALSE se refieren a las palabras correspondientes, todo minúscula en su uso en el código, por supuesto, SEMICOLON: '\texttt{;}', ASSIGN: '\texttt{=}', OPEN\_PAR: '\texttt{(}', CLOSE\_PAR: '\texttt{)}', ID indica identificador, es decir, series de caracteres que no son palabras clave, como un nombre de variable o de función, ARROW: '\texttt{=>}', TYPE\_SPEC se refiere a especificador de tipo, que también son palabras claves todo en minúscula, number, boolean y string, QUOTE\_MARKS: '\texttt{"}'.
 
 \section*{Conclusiones}
 Aunque me haya parecido inicialmente un concepto francamente arcano esto del parsing de descenso recursivo, y después mucho más toda la ciencia que se ha construido alrededor y adyacente a la inferencia de tipos (de ahí la inspiración de mucha de la terminología usada, desde Contexto a Simple Type), ha sido extremadamente interesante aprender sobre las herramientas que planeo usar por gran parte de mi vida, ya son intuitivos conceptos como tipado estático, árbol de sintaxis abstracta o expresiones regulares, ha sido honestamente un placer aprender sobre el tema.
