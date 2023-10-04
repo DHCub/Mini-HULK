@@ -90,12 +90,19 @@ class Context
         var sqrt_Symbol = new Function_Symbol(SQRT, Return_Type, Parameters);
         C.Assignments[SQRT] = sqrt_Symbol;
 
+        Parameters = new List<Variable_Symbol>();
+        Parameters.Add(new Variable_Symbol("x", SimpleType.NUMBER()));
+        Return_Type = SimpleType.NUMBER();
+        var log_symbol = new Function_Symbol(LOG, Return_Type, Parameters);
+        C.Assignments[LOG] = log_symbol;
+
     }   
 
     public const string PRINT = "print";
     public const string SIN = "sin";
     public const string COS = "cos";
     public const string SQRT = "sqrt";
+    public const string LOG = "log";
 
     public const string PI = "PI";
     public const string E = "E";

@@ -48,8 +48,15 @@ static class Interpreter
             else if (name == Context.SQRT)
             {
                 var argument = (double)eval(call.Arguments[0])!; // semantic analyzer ensured non-null
-                if (argument < 0) throw new Exception($"Square Root of negative number detected");
+                if (argument < 0) throw new Exception(RUNTIME_ERROR + "Square Root of negative number detected");
                 return Math.Sqrt(argument);
+
+            }
+            else if (name == Context.LOG)
+            {
+                var argument = (double)eval(call.Arguments[0])!; // semantic analyzer ensured non-null
+                if (argument <= 0) throw new Exception(RUNTIME_ERROR + "Logarithm of non-positive number detected");
+                return Math.Log10(argument);
 
             }
             else
@@ -208,6 +215,9 @@ static class Interpreter
 
 
     static string Zero_Division()
-        => $"Zero dvivision detected";
+        => RUNTIME_ERROR + $"Zero dvivision detected";
+
+    const string RUNTIME_ERROR = "! RUNTIME ERROR: ";
+
 }
 
