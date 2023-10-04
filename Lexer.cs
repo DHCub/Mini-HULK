@@ -16,6 +16,7 @@ class Token
     public const string EOF = "EOF";
 
     public const string EQUAL_EQUAL = "==";
+    public const string NOT_EQUAL = "!=";
 
     public const string ASSIGN = "=";
 
@@ -176,6 +177,18 @@ class Lexer
             {
                 curToken = new Token(Token.ASSIGN, Token.ASSIGN, pos);
                 advance();
+            }
+            return;
+        case '!':
+            if (peek() == '=')
+            {
+                curToken = new Token(Token.NOT_EQUAL, Token.NOT_EQUAL, pos);
+                advance();
+                advance();
+            }
+            else
+            {
+                throw new Exception(LEXICAL_ERROR + $"Invalid character '{curCharacter}' at {pos}");
             }
             return;
         case ';':

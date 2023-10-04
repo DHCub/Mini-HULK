@@ -1,0 +1,201 @@
+\documentclass{article}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[left=2cm, right=2cm, top=3cm, bottom=3cm]{geometry}
+
+\begin{document}
+
+\title{Reporte sobre intérprete HULK}
+\author{Darío Hernández Cubilla C-113}
+\date{10 de Septiembre de 2023}
+\maketitle
+
+\tableofcontents
+
+\begin{abstract}
+    En este trabajo se explicarán detalles sobre la implementación anexa de un subconjunto
+    del Havana Language for Kompliers, HULK, segundo proyecto de programación de la carrera
+    de Ciencias de la Computación de la Universidad de la Habana. Con el objetivo de apoyar 
+    el entendimiento y análisis del código, además de las ideas sobres las que se implementó.
+
+    Se explicarán dichas ideas a grandes rasgos y algunas especificidades del código.
+\end{abstract}
+
+\newpage
+
+\section*{Introducción}
+El lenguaje es uno de los inventos más importantes de la historia de la humanidad, tal vez el más importante, posibilitando compartir información con nuestros colegas humanos, del presente y el futuro, posibilitando así la acumulación de conocimiento que nos ha llevado a la era actual. Es entonces obvio, dada la existencia de la computación, máquinas que pueden procesar información a velocidades enormes, que el hombre haya inventado métodos para, en esencia, darles órdenes a estas herramientas, y su éxito sobre este reto ha propulsado la civilización humana. El hombre ha evolucionado para facilitar el uso del lenguaje, es simplemente una gran ventaja evolutiva, un niño de 6 años tiene un entendimiento intuitivo de las reglas de su lenguaje natal impresionante, una computadora no tiene esta ventaja innata.
+
+Todo lenguaje se basa en reglas, construidas sobre un léxico o conjunto de palabras que tienen sentido por sí solas y en cierto contexto, para enviar un mensaje, que debe tener sentido, ausencia del cual cualquiera que lo entienda detectaría. En ­español, un modelo muy simple es la oración, un objeto semántico que envía algún mensaje, tan simple o profundo como “El niño fue a la escuela” o “La felicidad solo es real cuando es compartida”. Sujeto y predicado, el sujeto es lo que el nombre implica, algún actor, un objeto de la realidad objetiva o subjetiva, el predicado, una acción de dicho objeto (puede ser también un atributo siendo dado a ese objeto o formas más complejas, pero mi objetivo es solo establecer paralelismos con el objeto del reporte). Detectar errores es más sencillo cuando tenemos estas reglas, errores léxicos serían cuando una palabra simplemente no está en el léxico del idioma, gramático, cuando las palabras están en el lugar incorrecto en la oración, como “Niño el fue a escuela la”, semántico, cuando lo que se dice no tiene sentido, aunque siga las reglas del idioma “La silla caminó hacia la escuela”, las sillas no pueden caminar, hasta donde sabemos, aunque la oración no tenga problemas léxicos o gramáticos.
+
+Usando ideas similares, podemos crear lenguajes de programación. Creando una serie de reglas lo suficientemente sencillas para ser razonablemente fácil de entender por un humano, estrictas para eliminar ambigüedades innecesarias y facilitar el trabajo del programador y del compilador o intérprete, y flexible, para poder enviar órdenes complejas a la computadora, además de creando sistemas para detectar errores en el léxico, la gramática, o los errores semánticos posibles, como decirle a una silla que camine, o a un entero que se sume aritméticamente con una cadena de caracteres, podemos crear lenguajes efectivos y robustos. Por suerte la creación de un lenguaje no fue el objetivo de este trabajo, simplemente su implementación.
+
+Rápidamente para aclarar terminología, un compilador es un programa que traduce un lenguaje de programación a código máquina, un intérprete es un programa que traduce de un lenguaje de programación a otro. HULK es un intérprete, se leerá código escrito en un subconjunto de HULK y se ejecutará usando C\#.
+
+\newpage
+
+\section{Léxico}
+
+Todo lenguaje (que el autor conozca) que se ha creado hasta la actualidad se basa en palabras, y estas están construidas a partir de un alfabeto. Un lenguaje puede guardar información con un alfabeto de solo dos elementos, las computadoras lo hacen con el lenguaje máquina. Para un ser humano, sin embargo, es poco intuitivo intercambiar información con una máquina usando 0s y 1s, así que ha creado programas que, en esencia, traducen de un idioma más similar a los idiomas que conocemos, como el inglés y el español, a un idioma que las computadoras puedan entender, lenguaje máquina. Como el inglés es tan ampliamente usado en el mundo, la mayoría de los idiomas de programación usan palabras de este, usando el alfabeto anglosajón.
+
+El lenguaje que se implementó en este proyecto fue el HULK, Havana University Language for Kompilers. Este usa palabras como “let”, “in”, “if”, “else”, “function”, etcétera, para crear comandos que la computadora pueda comprender.
+
+En este idioma, podemos ver cada palabra, o “token” para ser más claro, como el elemento más pequeño en el idioma que tiene significado. Un programa es entonces una serie de tokens separados por espacios, en cierto orden que sigue ciertas reglas. Lo primero que debe hacer el intérprete es reconocer las tokens que forman el programa. Para eso se usa el Lexer.
+
+El Lexer, usando información sobre el diccionario del idioma, separa cada programa en tokens, para que puedan ser analizados por partes de más alto nivel del intérprete. En esta implementación, tiene varios objetos auxiliares, que guardan la Token actual, la posición actual, el carácter actual y el texto del programa enviado, todo esto para facilitar la recuperación de información del Lexer y el propio proceso de “tokenización”, podemos imaginar estos objetos como un puntero en el próximo carácter que no ha sido consumido y la token anterior guardada en un objeto para ser referenciada. Tiene además la función \texttt{getNextToken}, donde ocurre el reconocimiento de la token siguiente, que se guarda en \texttt{curToken} (el objeto que guarda la token actual), en este objeto también se guarda la posición de la token en cuestión, para facilitar la generación de mensajes de error. Tiene la función \texttt{eat}, la cual recibe como parámetro una string, que debe contener el nombre de tipo de Token esperado (en esencia, si \texttt{curToken} no tiene este mismo tipo, se lanza un error gramático (como podemos, en español, esperar un sustantivo o adjetivo después de un artículo)), todos guardados como variables constantes en las clases \texttt{Token} y \texttt{KeyWords}, que sirven como diccionarios del lenguaje. Contiene además las funciones auxiliares \texttt{peek}, que devuelve el próximo carácter sin consumirlo, \texttt{advance}, que consume el carácter actual y guarda el siguiente en \texttt{curCharacter} (el objeto que guarda el carácter actual), \texttt{jumpSpaces}, que consume los espacios en blanco contiguos, \texttt{\_numberToken}, la cual se llama cuando \texttt{getNextToken} reconoce el inicio de un número (que no es más que un dígito, ningún otro tipo de Token empieza con dígitos) y devuelve la token de número o lanza un error cuando la token es inválida, como por ejemplo “14a” o “12.99.3” y \texttt{\_idToken}, que se llama cuando \texttt{getNextToken} reconoce el inicio de un identificador, que puede ser un indicador de tipo, una palabra clave como “else” o un nombre de variable.
+
+El léxico del lenguaje es fácilmente accesible y el objeto del reporte es explicar la implementación de este, así que no se expondrá exhaustivamente.
+
+Vale aclarar que en la orden del trabajo, en los ejemplos de código, no ocurren especificadores de tipo, pero se incluyeron en el léxico para posibilitar la desambiguación de tipos en declaraciones de funciones para la inferencia de tipos en estas, además de ampliar las reglas en dichas definiciones para acomodar el uso opcional de estos.
+
+\newpage
+
+\section{Gramática}
+
+Esta implementación usa parsing de descenso recursivo. En esencia, dadas una serie de reglas que forman la gramática del lenguaje, el Parser puede tomar decisiones sobre qué tipo de token esperar, y cómo construir un árbol de sintaxis abstracta o representación intermedia del programa usando estas y las reglas. 
+
+\subsection{AST} 
+El árbol de sintaxis abstracta es simplemente otra forma de almacenar el programa, es una estructura de datos en forma de árbol (valga la redundancia), cuyos nodos y las ramas que los unen contienen la información y el contexto donde ocurre esta. Por ejemplo, podemos imaginar 2 + 3 como un nodo de suma, que tiene dos hijos, 2 y 3, si queremos evaluar 2 + 3 simplemente tomamos el valor de 2 y el de 3 y los sumamos. Si tenemos la expresión (2 + 3) * 2, podemos tomarlo como un nodo de multiplicación, que tiene los hijos (2 + 3) y 2, es claro pues que debemos evaluar primero 2 + 3, que ya conocemos la respuesta y después 2, cuya respuesta es clara, y después multiplicarlos. El parsing de descenso recursivo maneja sin dificultades este tipo de anidación de expresiones, tan compleja como desee el programador, asumiendo que las reglas lo contemplen por supuesto. Maneja también la precedencia con el uso de las reglas adecuadas, creando una regla por cada nivel de precedencia se logra esto, así, por ejemplo, en 2 + 3 * 2, + ocurre antes de *, pero sabemos que el nodo de multiplicación debe evaluarse primero, en las reglas se maneja esto creando una regla que ordena al parser a agrupar todas las multiplicaciones (y divisiones) en nodos antes de las sumas y restas, tomando, por ejemplo, la expresión dada como una suma de términos, con los términos 2 y 3 * 2 como miembros, un término siendo una serie de números multiplicados o divididos, entonces, se crean dos nodos término, y se suman en un nodo suma, uno de los nodos sería simplemente un literal, 2 y el otro sería un nodo de multiplicación, que se evaluaría antes de la suma. De esta forma se crean sistemas de precedencia más complejos, adicionando más operadores, como los lógicos, o el @, de concatenación de strings.
+
+Con un diseño inteligente del lenguaje, se pueden crear una serie de reglas que permitan al parser tomar decisiones sin ambigüedades, en nuestro ejemplo anterior de una calculadora sencilla, después de un operador se espera o un número literal, o una apertura de paréntesis, o, más sucintamente, un término, si se espera un término, entonces se espera un factor seguido de 0 o más factores multiplicando o dividiendo, y si se espera un factor, se espera un número literal o una suma o resta de 1 o más términos encerrados en paréntesis. Entonces tomamos el primer término que encontremos en la expresión, si encontramos después de este un operador de suma o resta, creamos un nodo de suma o resta respectivamente (este tipo de nodo debe tener dos hijos, pero nodos diferentes pueden tener una distinta cantidad de hijos), con el primer término como hijo izquierdo, después esperamos otro término, que será el hijo derecho del nodo, tomamos entonces el nodo como término original y vemos si sigue un signo de suma o resta y repetimos este paso hasta el final de la expresión. Usando este sistema, es claro cómo se generan árboles que representan las expresiones matemáticas correctamente. Se pueden añadir más posibilidades, como llamadas de funciones, expresiones let-in o if-else, o nombres de variables a los posibles objetos que puede esperar el parser en cualquier nivel de sus llamados, pero la base sigue siendo la misma, este descenso en la jerarquía de definiciones (expresión (suma o resta de términos), término, factor (o tantos como se desee, o niveles de precedencia de operadores exista)) es lo que le da nombre a este tipo de parsing, y es ampliamente usado por lenguajes de programación.
+
+Dadas las reglas de un lenguaje, su traducción a código es prácticamente trivial con un lenguaje orientado a objetos como es C\#, cada objeto sintáctico llamémosles, como término, factor o expresión puede implementarse creando una función que retorne un nodo de AST, así la función \texttt{term} seguirá al pie de la letra los pasos dados en el párrafo anterior sin mucha complejidad en su implementación, el código en \texttt{Parser.cs} sigue claramente estas reglas.
+
+\subsection{Tipos de Nodos}
+
+Con nodos binarios podemos implementar la calculadora anterior, pero no podemos implementar HULK, para ello debemos crear más tipos de nodos, estos los podemos ver en \texttt{AST.cs}. En HULK hay operadores unarios, que pueden ser + o -, con la más alta precedencia,  2 \^{} -3  debería ser entendido como un nodo \^{} con hijos 2 y -3, en esta implementación, -3 es entendido como un nodo unario “-“ con hijo 3. La regla para este tipo de operadores se llama “Power”, y de encontrar otro operador de suma o resta crea un nodo unario respectivo y después espera otro “Power” como hijo de este, de esta forma el parser puede entender expresiones como $ 2 + -------3 $, evaluando primero -3, después -(-3) y así sucesivamente hasta finalmente evaluar el nodo binario +. Similarmente se evalúan expresiones como 2 \^{} 3 \^{} 4, claramente se debería evaluar $3 ^ 4$ primero y después $2 ^{ (3 ^ 4)} $, para ello la regla “Factor” que maneja este operador espera un “Power”, que si está seguido de un operador \^{}, es tomado como hijo izquierdo de un nodo \^{}, y como hijo derecho se toma otro “Factor”, así se le da precedencia a las elevaciones de más a la derecha.
+
+Existen formas gramáticas más complejas en HULK que simplemente expresiones matemáticas, las declaraciones y llamadas de funciones y las expresiones let-in e if-else. Los últimos tres tipos devuelven todos un valor en HULK, cuyo tipo depende del cuerpo de la expresión en los últimos dos y del tipo de retorno de la función en el primero. Para estos se crean reglas especiales. Los nodos que los representan son más complejos que los operadores usuales. 
+
+Para declaraciones de funciones se deben conocer el nombre de la función, el nombre de sus parámetros, tipo de retorno y los tipos de cada uno de sus parámetros (y su número, por supuesto), información análoga a esta se conoce de los nodos más sencillos, un nodo AND devuelve Boolean, y recibe nodos Boolean como hijos derecho e izquierdo, un nodo de string tiene tipo string y así, el nodo de declaración de una función debe pues especificar su tipo para posibilitar el chequeo de tipos de retorno y de parámetros posteriormente. Además debe tener algún cuerpo, que no es más que una expresión (como let-in o 2 + b), que a su vez determina su tipo de retorno. 
+
+Similarmente, un nodo de llamada de función debe contener el nombre de la función y los argumentos enviados, también se añade en la implementación un objeto que guarda el cuerpo de la función en sí, el cual es asignado cuando se analiza semánticamente el árbol, no en su creación.
+
+Un nodo if-else debe contener una serie de condiciones, que, de ser cumplidas, indicarán al intérprete que ejecute la expresión que le corresponde, contiene además la serie de expresiones correspondientes, además de una más, que va después de la palabra clave “else”, que se ejecuta en caso que ninguna otra condición se haya evaluado como verdadera [if (condición\_1) expresión\_1 elif (condición\_2) expresión\_2 … elif (condición\_n) expresión\_n else expresión\_ELSE]. Cada una de las condiciones no son más que nodos de expresión, que se espera devuelvan Boolean, cada expresión es similarmente una expresión, que se espera devuelva el mismo tipo que cualquiera de las otras, el tipo de la expresión if-else sería pues el tipo de retorno compartido de las expresiones. 
+
+Una expresión let-in debe contener una serie de declaraciones de variables, que en sí son nodos que contienen un nodo de variable (que en sí es un nodo que contiene una token que representa el identificador de la variable en el texto del programa) y un nodo de cuerpo (de la declaración), que se tomará como el valor asignado a la variable en el cuerpo, que es el otro nodo que contiene el nodo let-in. El tipo de retorno del nodo let-in es, pues, el tipo de retorno de su nodo de expresión, o su cuerpo.
+
+La implementación de los nodos de literales de String, Number y Boolean, además de los de variables es trivial.
+
+\newpage
+
+\section{Semántica}
+
+Con una representación intermedia, el análisis semántico de un programa puede comenzar. El objetivo de este paso es analizar que las sillas no estén caminando, ni que los Booleanos se estén sumando con números, además, este paso facilita la interpretación no solo eliminando la preocupación de que este tipo de errores ocurran, sino añadiendo los cuerpos correspondientes a los nodos de las llamadas de funciones, pues solo creando el AST no lo podemos hacer. En el caso especial de las declaraciones de funciones, este paso se encarga de la inferencia de tipos global, es decir, de la inferencia de los tipos de los parámetros y el tipo de retorno de la función basado en su uso en el cuerpo de esta.
+
+\subsection{Contexto, ámbito (scope)}
+
+Para apoyar este análisis se crea un objeto de tipo \texttt{Context}, cuyo objetivo es contener toda la información de tipo de cada variable y función conocida hasta el punto donde se envía un comando a la aplicación de consola. Esta información se almacena en objetos de tipo \texttt{Symbol}, uno para cada función y variable, que contiene el nombre del objeto en cuestión y que guarda la información de tipo en objetos del tipo \texttt{SimpleType}, que funciona usando valores enteros negativos para representar cada uno de los tipos built-ins de HULK, y valores positivos para representar variables de tipo, la razón detrás de esto se explicará más adelante, este uso de enteros se efectúa únicamente en la implementación del objeto en sí, el objetivo de esta estrategia es posibilitar la creación de un número considerablemente grande de variables de tipo de forma relativamente intuitiva (tipo\_1, tipo\_2…).
+
+Un nombre de variable no necesariamente se refiere a la misma variable en todo un programa, por ejemplo, en \texttt{let a = 3, b = 7 in (let a = 2 in a + b) + a + b;}, la primera referencia a “a” se refiere a 2, mientras que la segunda se refiere a 3, esto pues la segunda expresión let-in “esconde” la asignación de a. A diferencia de esto, las referencias a “b” refieren al mismo valor, pues la segunda expresión let-in no la redefine. \texttt{Context} posibilita esta lógica al ser capaz de anidarse, es decir, se crea un nuevo Contexto anidado a un contexto original, si se busca el tipo de una variable en este y no se encuentra, se busca en el contexto exterior, si se encuentra, se toma el tipo del contexto interior, sin importar el tipo de la variable (o su existencia) en el exterior, al salir del contexto interior en el código, simplemente se revierte al contexto exterior, se desecha el interior y se continúa el análisis. 
+
+Se crea pues, para analizar un programa, un contexto global, que contendrá las funciones válidas declaradas por el usuario (si se encuentran errores en una declaración de función, se le informa al usuario y la declaración defectuosa es desechada, no afecta la ejecución del programa), que pueden ser usadas en el resto de la ejecución del programa, desde su creación. Se crea un Contexto aparte que contiene las variables y funciones preconstruidas, cuyo miembro isBuiltins está asignado como True, los demás Contextos lo tienen como False, esto lo hace la clase \texttt{Context} la primera vez que se construye un objeto de tipo \texttt{Context} y todos los objetos de este tipo pueden acceder a este contexto de preconstruidos. Se crea además un Contexto \texttt{Current\_Context} cuyo objetivo es facilitar el acceso al Contexto actual como su nombre indica, en esencia guarda la profundidad donde se encuentra el analizador semántico.
+
+\subsection{Chequeo de tipos estático}
+
+En los casos de expresiones if-else, let-in y las expresiones con operadores, es muy sencillo chequear tipos, pues antes de la ejecución de cada uno de sus cuerpos, se tiene toda la información de tipos necesaria, la más problemática es la expresión let-in, pues requiere la creación de un nuevo Contexto para permitir la lógica de anidación de ámbitos de variables, pero la inferencia de tipos que ocurre en cada declaración de variables (que no admite especificador de tipos por esta misma razón) es sencilla, simplemente observando el nodo más exterior al que está asociado la variable se conoce el tipo de esta, si el nodo es OR, se conoce que la variable es Boolean, si es un nodo unario -, se conoce que es Number, si es un nodo String literal, es claro que es string, etcétera, se deben conocer además los tipos de todos los objetos usados en esta declaración, si no, el error ocurre por parte del programador.
+
+Conocida toda la información de tipos de variables y funciones en un cuerpo de una expresión de estos tipos, puede comenzar el chequeo estático. Para esto se usa la función \texttt{typecheck}, que recibe un AST y devuelve un objeto del tipo \texttt{SimpleType}, por ejemplo, al llamar \texttt{typecheck} sobre el árbol creado de la expresión 2 + 3, (que es un nodo + con hijos números literales 2 y 3) esta función se llama a sí misma sobre los hijos del nodo, y compara el tipo recibido con el tipo que se espera para hijos de este nodo, al llamarse sobre 2 y 3, y al ser literales números, simplemente se devuelve la constante de \texttt{SimpleType} que representa el tipo number, el tipo esperado es, en efecto, number, por tanto \texttt{typecheck} no encuentra errores y devuelve el tipo que devuelve el nodo en sí, number también. De haber habido un error, como en 2 + true, al llamar \texttt{typecheck} sobre el nodo que representa al literal booleano true, \texttt{typecheck} habría encontrado la discrepancia y lanzado el error adecuado. De esta forma se chequea tipos recursiva y exhaustivamente a través de la representación intermedia.
+
+\subsection{Inferencia de tipos global}
+
+Para posibilitar esta función se usa la estrategia de implementación peculiar de \texttt{SimpleType}. Cuando se define una función en HULK, no es necesario definir los tipos de los parámetros o de retorno de la función, a pesar de ser un lenguaje tipado estáticamente y a diferencia de lenguajes como C\# o C++. Esto se debe a que se espera que el intérprete en sí infiera los tipos de estos, la llamada inferencia de tipos global. En esta implementación se usan clases auxiliares, que representan ecuaciones de tipos (\texttt{Equation}) y sistemas de estas ecuaciones (\texttt{Equation\_System}). En HULK, los operadores no pueden ser sobrecargados, así que la mayoría de estos (== o @ son excepciones, por ejemplo) revelan información de sus miembros, en \texttt{function q(a) => let b = a in b + 3;} no es necesario Contexto para saber que a es un número y también lo es el valor retornado por q. Pero para ello debemos de alguna forma vincular los tipos de b (que al verla por primera vez no conocemos en qué se usará) con el tipo de a, es decir, igualar estas variables en un sistema de ecuaciones, después, al analizar el uso de b, se conocerá que esta es un número, ergo a también lo será, similarmente, el tipo de retorno de q es el de su cuerpo, que es el de b + 3, que es claramente number en HULK.
+
+Al definir una función se llama a la función \texttt{Define\_Function}, que recibe un nodo de AST que contiene la declaración. Primeramente, se crea un nuevo Contexto, anidado en el contexto global, este será usado para almacenar los tipos o variables de tipos de la función y sus parámetros en el proceso de inferencia, sin afectar el Contexto global aún. Se analiza el nodo de definición, para eliminar ambigüedades problemáticas (\texttt{function f(a, b) => a == b;}) se implementó la especificación de tipos opcional en estas definiciones (\texttt{function f(c : number, d, e : boolean) : number => …}), por tanto este puede ya contener información de algunos o todos los tipos de parámetros y de retorno de la función, cualquier cantidad de información es recolectada en el Contexto provisional. Toda esta información se guarda en un objeto de tipo \texttt{Symbol}, como se haría normalmente, en caso de que este objeto contenga alguna variable de tipo en las declaraciones de parámetros o el tipo de retorno, se llama a la función \texttt{getType\_Inferred\_Function\_Symbol} para asignar lo que retorne al \texttt{Symbol} original, ahora con los tipos inferidos. Esta función por su parte simplemente crea un nuevo \texttt{Symbol} con los datos obtenidos por la función \texttt{InferTypes}, que funciona de forma similar a \texttt{typecheck}, pero maneja más información. Esta función recibe un sistema de ecuaciones de tipos (originalmente vacío), un nodo de AST y un objeto \texttt{SimpleType}, que representa el tipo que se espera devuelva el nodo. También usa la información en el Contexto provisional, que está guardado en \texttt{Current\_Context}, donde están las variables o literales de tipo de los parámetros y el tipo de retorno de la función. En esencia usa un método top-down para distribuir la información de tipos a través del AST de cuerpo de la declaración de función y guardarla en el sistema de ecuaciones. Por ejemplo, si se encuentra el árbol correspondiente a 
+
+\texttt{function f(a, b) => let c = a in if (b) c + 3 else 4;}
+
+Tendrá originalmente tres variables de tipo, T\_f (de retorno de f), T\_a y T\_b. Encontrará como nodo de cuerpo de f a la expresión let-in, primero investigará las declaraciones de variables en esta, debe crear un nuevo contexto para incluirlas, posiblemente ocultando los nombres de parámetros al hacerlo (no en este caso). Crea una nueva variable T\_c, añade una ecuación de tipo con T\_c igualado a su nodo de valor (entra a su nodo de valor esperando T\_c), que en este caso es simplemente a, con esta información en el nuevo contexto, entra en el cuerpo del let-in, esperando el tipo de retorno de f, no olvidemos, encuentra allí una expresión if-else, un festín de información, primero entra a la condición esperando Boolean claramente, felizmente iguala a b con Boolean de esta forma en el sistema de ecuaciones, entra pues en la primera expresión del if-else, c + 3, esperando aún T\_f, sabemos que + devuelve Number, otra ecuación para el sistema, desciende a los hijos esperando Number, iguala pues c a Number, no puede extraer información de su otro hijo claramente. Después entra en la última expresión del if-else, esperando aún T\_f, que se iguala al tipo de 4, que es Number. Dado este análisis tenemos el siguiente sistema:
+
+\begin{enumerate}
+    \item  T\_c = T\_a
+    \item T\_b = Boolean
+    \item T\_f = Number
+    \item T\_c = Number
+    \item T\_f = Number
+\end{enumerate}
+
+Aquí termina el trabajo de \texttt{InferTypes}, lleno el sistema de ecuaciones, para cada variable de tipo se llama a \texttt{ResolveType}, con el sistema de ecuaciones y la información necesaria para enviar un mensaje de error informativo en caso de discrepancias.
+
+Veamos qué se hace para resolver una de las variables, T\_a. Inicialmente se toma cualquiera de las ecuaciones donde ocurre T\_a, tomemos la primera, T\_a = T\_c, esta es removida del sistema de ecuaciones (la implementación asegura que no hayan duplicados).  Primero se chequea si el lado derecho es un literal, en este caso no lo es, si lo fuera se guardaría esa información y se continuaría el proceso, de encontrarse otra ecuación con un literal diferente, se lanzaría un error por inconsistencia. Como no es un literal, se toman todas las ecuaciones donde ocurre el lado derecho, y se sustituye T\_a por este, tendríamos entonces como ecuación relevante a T\_a = Number. Se repite el proceso, se toma una ecuación donde ocurra T\_a, en este caso la única es T\_a = Number, se extrae, como el lado derecho es un literal se guarda la información y no se sustituye. Se vuelve a buscar una ecuación donde aparezca T\_a, como no se encuentra, y se tiene que T\_a es usado como Number, se puede asegurar que no hay inconsistencias con su uso y su tipo es necesariamente Number, de terminarse el proceso sin un tipo encontrado, se lanza un error por ambigüedad. Este proceso se repite con el sistema de ecuaciones original para el resto de las variables, así se infieren todos sus tipos, como cada paso elimina al menos una ecuación y no se pierde información en cada paso, el proceso terminará y extraerá toda la información posible.
+
+Esta información es guardada en un objeto de tipo \texttt{Symbol} que es devuelto por \texttt{getType\_Inferred\_Function\_Symbol}. Dado esto tenemos toda la información necesaria para llamar a \texttt{typecheck} sobre el cuerpo de la función para encontrar cualquier error semántico posible en compilación. Finalmente, la función es definida en el Contexto global, chequeándose si ya está definida en este, además, se añade al \texttt{Symbol} que representa a la función el AST que representa su cuerpo, para ser usado en la ejecución de sus llamadas. En caso de terminar todo este proceso correctamente, tendremos una nueva función estáticamente tipada que se podrá usar en el resto de la ejecución del programa.
+
+Vale la pena decir que una función puede ser llamada dentro de su propia definición, pues su nombre se encuentra en el Contexto provisional, con sus respectivos variables o literales de tipo.
+
+\newpage
+
+\section{Ejecución}
+
+Después de asegurarse que no hayan ocurrido errores léxicos, gramáticos, o semánticos obvios, es finalmente hora de hacer lo que el usuario ordenó. Este proceso facilita enormemente la ejecución, sabemos que cada llamada a función, referencia a variable y literal devolverá un valor de un tipo que se puede usar en el contexto en que se encuentra.
+
+La clase \texttt{Interpreter} se encarga de la ejecución usando estas garantías. Tiene un objeto del tipo \texttt{Activation\_Record}, que funciona de forma similar a \texttt{Context}, este guarda objetos de C\# asignados a nombres de variables, no guarda los cuerpos de las llamadas a funciones, pues estos ya se encuentran en sus respectivos nodos del AST, cortesía del analizador semántico. La ejecución es trivial, efectuada por la función \texttt{eval}, que recorre el árbol de forma similar a \texttt{typecheck}, pero esta vez retornando valores, si encuentra un nodo + se llama a sí misma sobre sus hijos, esto retorna dos objetos de tipo \texttt{object} de C\#, que son casteados a \texttt{double} sin chequeo alguno, pues ya se hizo anteriormente, y se suman, así con todos los demás nodos. En el caso de llamadas, recursivas o no, de funciones, es marginalmente más complejo. En este caso se crea un nuevo \texttt{Activation\_Record}, independiente del actual (no anidado), donde se guardan los valores de los argumentos enviados y posteriormente se ejecuta el cuerpo, esto permite sin dificultades la recursividad, imitando lo que hacen otros lenguajes de programación, ejecutado el cuerpo, se desecha el \texttt{Activation\_Record} creado y la función \texttt{eval} devuelve el resultado de la ejecución. En el caso de llamadas a funciones preconstruidas, la lógica de estas está directamente integrada en el código de \texttt{eval}. En el caso de expresiones let-in, se hace algo parecido a las llamadas de funciones, pero el \texttt{Activation\_Record} creado para guardar los valores de las variables declaradas se anida con el actual para poder acceder a los datos contenidos en este y después se desecha cuando se obtiene el valor que resulta de ejecutar el cuerpo del let-in.
+
+\newpage
+
+\section{Manejo de Errores}
+
+\subsection{Errores Léxicos}
+Este tipo de errores es el más obvio, son encontrados por \texttt{getNextToken}, simplemente se encuentran tokens u operadores inexistentes en el léxico del lenguaje.
+
+\subsection{Errores Gramáticos}
+Encontrados por la función \texttt{eat} del Lexer al ser llamada normalmente desde el Parser, también son relativamente sencillos, terminado un programa, se espera un ';', se esperan paréntesis al principio y final de una declaración de parámetros de función o de argumentos en una llamada, etcétera.
+
+Similarmente, pero tal vez un poco más insidiosos, podemos encontrar errores más ambiguos, como en el comando "\texttt{a or ;}", aquí claramente falta algo, esta expresión no es válida, pero no hay una token en específico que deba ocurrir después del operador, puede ser un número que forme \texttt{2 == 3} o una string en una expresión similar, para estos casos, se ha creado un sistema que hace a las funciones que manejan las reglas de la gramáticas nulleables, es decir, que pueden devolver null, esto implicaría que no se encontró lo que se esperaba después de cierto operador, y el propio operador nos da cierta información sobre qué se debe esperar a grandes rasgos. Dado que no se encontró lo que se esperaba, se lanza un error en este caso que sugiere una expresión Booleana, así con el resto de los operadores.
+
+\subsection{Errores Semánticos}
+Usando la información contenida en los objetos de tipo \texttt{Symbol}, se pueden encontrar errores como el uso de nombres de funciones como variables o viceversa o el uso de nombres que no se han definido. Con funciones como \texttt{typecheck} y \texttt{InferTypes}, se pueden encontrar los errores de discrepancia de tipos con extrema facilidad, después de detectadas las discrepancias, solo resta lanzar errores usando las posiciones almacenadas en los nodos con las tokens de operadores o de nombres de variables.
+
+Vale la pena aclarar que en el caso de los errores durante el análisis semántico, de existir, se debe llamar la función \texttt{RevertToGlobal} de la instancia del analizador, esto se hace necesario pues cuando se lanza una excepción durante el análisis, el analizador puede tener marcado como contexto actual a cualquier scope del programa, si no se revierte al gobal, pueden ocurrir errores insidiosos, esto se hace en \texttt{Program.cs}.
+
+\subsection{Errores en Tiempo de Ejecución}
+La clase \texttt{Interpreter} maneja estos errores, con la peculiaridad de que no podemos especificar el carácter donde ocurrió el error, pues este puede haber ocurrido directamente en un comando enviado por el usuario, como \texttt{3 / 0;}, o la n-ésima llamada a una función recursiva. Sencillamente lanzamos una excepción con el tipo de error detectado.
+
+\newpage
+
+\section{Anexo, Reglas usadas}
+
+\begin{verbatim}
+Command : (Statement | Function_declaration) SEMICOLON
+
+Statement : let_in_statement
+          | if_else_statement
+          | OP_Expression
+
+let_in_statement : LET declaration_list IN Statement
+
+declaration_list : declaration (, declaration)*
+declaration : Variable ASSIGN Statement
+
+if_else_statement : IF OPEN_PAR Statement CLOSE_PAR Statement 
+                    (ELIF OPEN_PAR Statement CLOSE PAR Statement)* ELSE Statement
+
+Function_declaration : FUNCTION ID OPEN_PAR Parameters CLOSE_PAR (COLON TYPE_SPEC)? ARROW Statement
+Parameters : Variable (COLON TYPE_SPEC)? (, Variable (COLON TYPE_SPEC)? )*
+           | Empty
+
+OP_Expression    : Conj (OR Conj)*
+Conj             : Prop (AND Prop)*
+Prop             : Member ((== | > | >= | < | <=) Member)*
+Member           : Arit_String_Bool (@ Arit_String_Bool)*
+Arit_String_Bool : String | Term((+|-)Term)* | Boolean
+Term             : Factor ((*|/|%) Factor)*
+Factor           : Power (^ Factor)*
+Power            : Number | Variable | Function_Call | OPEN_PAR Statement CLOSE_PAR | (+|-)Power
+
+Variable      : ID
+Boolean       : TRUE | FALSE
+String        : QUOTE_MARKS _text_ QUOTE_MARKS
+
+Function_Call : ID OPEN_PAR Arguments CLOSE_PAR
+
+Arguments     : Statement (, Statement)*
+              | Empty
+\end{verbatim}
+
+LET, IN, FUNCTION, IF, ELSE, ELIF, AND, OR, TRUE y FALSE se refieren a las palabras correspondientes, todo minúscula en su uso en el código, por supuesto, SEMICOLON: '\texttt{;}', ASSIGN: '\texttt{=}', OPEN\_PAR: '\texttt{(}', CLOSE\_PAR: '\texttt{)}', ID indica identificador, es decir, series de caracteres que no son palabras clave, como un nombre de variable o de función, ARROW: '\texttt{=>}', TYPE\_SPEC se refiere a especificador de tipo, que también son palabras claves todo en minúscula, number, boolean y string, QUOTE\_MARKS: '\texttt{"}'.
+
+\section*{Conclusiones}
+Aunque me haya parecido inicialmente un concepto francamente arcano esto del parsing de descenso recursivo, y después mucho más toda la ciencia que se ha construido alrededor y adyacente a la inferencia de tipos (de ahí la inspiración de mucha de la terminología usada, desde Contexto a Simple Type), ha sido extremadamente interesante aprender sobre las herramientas que planeo usar por gran parte de mi vida, ya son intuitivos conceptos como tipado estático, árbol de sintaxis abstracta o expresiones regulares, ha sido honestamente un placer aprender sobre el tema.
+
+\end{document}
