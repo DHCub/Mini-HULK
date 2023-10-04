@@ -10,8 +10,11 @@ Simplemente correr (dotnet run) la app de consola en Program.cs para ejecutarlo
 Escribir comandos después del carácter '>', terminando cada línea con ';'
 
 Tipos: number, string, boolean
+
 Literales booleanos: true, false
+
 Funciones Pre-construidas: log(x) (base 10), sin(x), cos(x), sqrt(x), print(x) (simplemente imprime x)
+
 Variables Pre-construidas: E (euler), PI
 
 En declaraciones de funciones, si el contexto donde son usados los parámetros y el
