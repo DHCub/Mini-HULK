@@ -19,5 +19,7 @@ Variables Pre-construidas: E (euler), PI
 
 En declaraciones de funciones, si el contexto donde son usados los parámetros y el
 tipo de retorno no es suficiente para inferir sus tipos, especificar tipos de la forma:
+
 function f(n: number) => n == n;
+
 function f(b) : boolean => b; // especificando el tipo de retorno de f
