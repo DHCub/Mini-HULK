@@ -4,6 +4,7 @@ class Program
 {
     static void Main()
     {
+        Tester.Test();
         var analyzer = new Semantic_Analizer();
         while(true)
         {
