@@ -5,10 +5,13 @@ namespace HULK;
 
 static class Interpreter
 {
+    const int stackHeight = 2000;
+    static int stackLevel = 0;
     static Activation_Record CurRecord = null!;
     public static object? Evaluate(AST_Treenode Statement)
     {
         CurRecord = new Activation_Record();
+        stackLevel = 0;
 
         return eval(Statement);
     }
@@ -61,6 +64,9 @@ static class Interpreter
             }
             else
             {
+                if (++stackLevel >= stackHeight)
+                    throw new Exception(RUNTIME_ERROR + $"Stack Overflow: {stackHeight} call stack height");
+    
                 var original_Record = CurRecord;
                 var callRecord = new Activation_Record();
 
@@ -76,6 +82,8 @@ static class Interpreter
                 var answ = eval(call.Symbol!.Body!);
 
                 CurRecord = original_Record;
+                stackLevel--;
+
                 return answ;
             }
             
