@@ -1,6 +1,6 @@
 Aplicación de Consola para interpretar líneas de código en lenguaje HULK, soporta declaraciones
 de funciones (que se pueden usar hasta que se cierre la app de consola, refrescándose cuando se
-reinicia) (incluyendo recursivas), chequeo de tipos estático, expresiones let-in, if-elif-else
+reinicia) (incluyendo recursivas), chequeo de tipos estático (con inferencia de tipos global), expresiones let-in, if-elif-else
 y expresiones matemáticas, lógicas y de concatenación de strings.
 
 .Net 7.0 sdk necesario para correr el proyecto
@@ -23,3 +23,11 @@ tipo de retorno no es suficiente para inferir sus tipos, especificar tipos de la
 function f(n: number) => n == n;
 
 function f(b) : boolean => b; // especificando el tipo de retorno de f
+
+tipos: 'number', 'boolean', 'string'.
+
+ejemplo de input:
+
+> function f(n) => if (n > 2) f(n - 1) + f(n - 2) else 1;
+> f(5)
+120
