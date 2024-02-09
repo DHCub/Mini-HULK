@@ -209,18 +209,3 @@ Errores que se producen por el uso incorrecto de los tipos y argumentos. Por eje
 ```
 
 En caso de haber más de un error, usted debe detectar solamente **uno** de los errores.
-
-## Detalles de implementación
-
-Este proyecto es fundamentalmente para implementar una jerarquía de tipos conveniente que represente el lenguaje HULK (o al menos el subconjunto de lenguaje que usted debe soportar).
-Usted deberá tener un conjunto de clases que representen los tipos de expresiones e instrucciones, así como otro conjunto de clases que representen los procesos y conceptos más importantes de su intérprete. 
-
-Para ello, su solución debe consistir al menos en dos proyectos en el lenguaje C#, usando .NET Core 7 o superior:
-
-- Una biblioteca de clases donde se implementa toda la lógica de parsing y evaluación del lenguaje HULK. En esta biblioteca no puede utilizar ninguna herramienta externa, más allá de la biblioteca estándar de .NET Core.
-- Una aplicación de consola (o cualquier otra tecnología de visualización) donde se implementa la parte interactiva del intérprete.
-
-En este proyecto **no es necesario** tener conocimientos avanzados de compilación, pues se ha definido un subconjunto de HULK que es posible resolver de manera directa. 
-Sin embargo, usted puede utilizar cualquier algoritmo o técnica de compilación que desee, siempre que sea capaz de implementarla desde cero y explicar su funcionamiento.
-
-Un consejo que sí podemos darle es estudiar el concepto de **parsing recursivo descendente** que le simplificará notablemente la tarea de interpretar el lenguaje HULK.
